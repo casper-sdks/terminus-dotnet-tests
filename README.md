@@ -20,5 +20,3 @@ Points to note are:
 - cd to CsprSdkStandardTestsNet
 - from here, run
     - dotnet test
-
-
