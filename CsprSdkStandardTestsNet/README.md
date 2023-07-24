@@ -14,7 +14,7 @@ Points to note are:
 
 ### To run the tests
 
-- install the .Net SDK 7.0 from [here](https://dotnet.microsoft.com/en-us/download/visual-studio-sdks)
+- install the .Net SDK 7.0 from [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
 - clone the github project
 - checkout the required branch
 - cd to CsprSdkStandardTestsNet
