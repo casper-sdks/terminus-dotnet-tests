@@ -1,18 +1,20 @@
 # This workflow will:
 #   - download and start a NCTL docker image
-#   - download the latest casper-java-sdk and build the jar
-#   - upload the sdk jar as a project artifact
 #   - download the test platform
 #   - run the cucumber tests via gradle
 #   - publish the xml test reports to the actions page
 
 
-name: CSPR Java SDK Standard Tests
+name: CSPR Net SDK Standard Tests
 on:
   workflow_dispatch:
+    
+permissions:
+  checks: write
+  
 jobs:
   build:
-    name: Java SDK Standard Tests
+    name: Net SDK Standard Tests
     runs-on: ubuntu-latest
     services:
       nctl:
