@@ -143,5 +143,28 @@ public class Blocks{
 
         _contextMap["blockDataNode"] = _nctl.GetChainBlock(_contextMap["blockHashSdk"].ToString());
     }
+    
+    [Given(@"that a block is returned by hash via the sdk")]
+    public async Task GivenThatABlockIsReturnedByHashViaTheSdk(){
+        WriteLine("that a block is returned by hash via the sdk");
+        
+        var rpcResponse = await GetCasperService().GetBlock();
+        
+        _contextMap.Add("latestBlock", rpcResponse.Parse().Block.Hash);
+
+        rpcResponse = await GetCasperService().GetBlock(_contextMap["latestBlock"].ToString());
+        
+        _contextMap["blockDataSdk"] = rpcResponse.Parse().Block;
+
+    }
+
+    [Then(@"request a block by hash via the test node")]
+    public void ThenRequestABlockByHashViaTheTestNode() {
+        WriteLine("request a block by hash via the test node");
+        
+        _contextMap["blockDataNode"] = _nctl.GetChainBlock(_contextMap["latestBlock"].ToString());
+        
+    }
+    
 }
 
