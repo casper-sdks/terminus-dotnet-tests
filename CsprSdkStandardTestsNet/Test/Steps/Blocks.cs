@@ -14,9 +14,9 @@ namespace CsprSdkStandardTestsNet.Test.Steps;
 [Binding]
 public class Blocks{
     
-    private static readonly TestProperties _testProperties = new();
+    private static readonly TestProperties TestProperties = new();
     private readonly Dictionary<string, object> _contextMap = new();
-    private readonly Nctl _nctl = new(_testProperties.DockerName);
+    private readonly Nctl _nctl = new(TestProperties.DockerName);
     
     private static NetCasperClient GetCasperService(){
         return CasperClientProvider.GetInstance().CasperService;
@@ -29,7 +29,7 @@ public class Blocks{
         var rpcResponse = await GetCasperService().GetBlock();
         
         _contextMap.Add("blockDataSdk", rpcResponse.Parse().Block);
-        _contextMap.Add("blockHashSdk", rpcResponse.Parse().GetHashCode());
+        _contextMap.Add("blockHashSdk", rpcResponse.Parse().Block.Hash);
     }
 
     [Then(@"request the latest block via the test node")]
@@ -116,6 +116,24 @@ public class Blocks{
                                        p["public_key"]!.ToString().ToLower().Equals(proofSdk.PublicKey.ToString().ToLower())),
                                 Is.Not.Empty);
         }
+    }
+
+    [Given(@"that a block is returned by height (.*) via the sdk")]
+    public async Task GivenThatABlockIsReturnedByHeightViaTheSdk(int height){
+        WriteLine("that a block is returned by height {0} via the sdk", height);
+        
+        var rpcResponse = await GetCasperService().GetBlock(height);
+        
+        _contextMap["blockDataSdk"] = rpcResponse.Parse().Block;
+        _contextMap["blockHashSdk"] = rpcResponse.Parse().Block.Hash;
+        
+    }
+
+    [Then(@"request the returned block from the test node via its hash")]
+    public void ThenRequestTheReturnedBlockFromTheTestNodeViaItsHash() {
+        WriteLine("request the returned block from the test node via its hash");
+
+        _contextMap["blockDataNode"] = _nctl.GetChainBlock(_contextMap["blockHashSdk"].ToString());
     }
 }
 
