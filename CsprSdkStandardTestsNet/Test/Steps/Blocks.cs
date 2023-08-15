@@ -18,6 +18,12 @@ public class Blocks{
     private static readonly TestProperties TestProperties = new();
     private readonly Dictionary<string, object> _contextMap = new();
     private readonly Nctl _nctl = new(TestProperties.DockerName);
+
+    private const string invalidBlockHash = "2fe9630b7790852e4409d815b04ca98f37effcdf9097d317b9b9b8ad658f47c8";
+    private const long invalidHeight = 9999999999;
+    private const string blockErrorMsg = "No such block";
+    private const string blockErrorCode = "-32001";
+
     
     private static NetCasperClient GetCasperService(){
         return CasperClientProvider.GetInstance().CasperService;
@@ -164,6 +170,36 @@ public class Blocks{
         
         _contextMap["blockDataNode"] = _nctl.GetChainBlock(_contextMap["latestBlock"].ToString());
         
+    }
+    
+    [Given(@"that an invalid block hash is requested via the sdk")]
+    public void GivenThatAnInvalidBlockHashIsRequestedViaTheSdk() {
+        WriteLine("that an invalid block hash is requested via the sdk");
+
+        _contextMap["rpcClientException"] = 
+            Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(invalidBlockHash));
+
+    }
+
+    [Then(@"a valid error message is returned")]
+    public void ThenAValidErrorMessageIsReturned() {
+        WriteLine("a valid error message is returned");
+        
+        var rpcClientException  = (RpcClientException)_contextMap["rpcClientException"];
+
+        Assert.That(rpcClientException.RpcError, Is.Not.Null);
+        Assert.That(rpcClientException.RpcError.Code.ToString(), Is.EqualTo(blockErrorCode));
+        Assert.That(rpcClientException.RpcError.Message, Is.EqualTo(blockErrorMsg));
+        
+        
+    }
+
+    [Given(@"that an invalid block height is requested via the sdk")]
+    public void GivenThatAnInvalidBlockHeightIsRequestedViaTheSdk(){
+        WriteLine("that an invalid block height is requested via the sdk");
+        
+        _contextMap["rpcClientException"] =  
+            Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(unchecked((int)invalidHeight)));
     }
     
 }
