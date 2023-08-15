@@ -201,6 +201,41 @@ public class Blocks{
         _contextMap["rpcClientException"] =  
             Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(unchecked((int)invalidHeight)));
     }
-    
+
+    [Given(@"that chain transfer data is initialised")]
+    public void GivenThatChainTransferDataIsInitialised(){
+        WriteLine("that chain transfer data is initialised");
+        
+    }
+
+    [When(@"the deploy data is put on chain")]
+    public void WhenTheDeployDataIsPutOnChain(){
+        WriteLine("the deploy data is put on chain");
+        
+    }
+
+    [Then(@"the deploy response contains a valid deploy hash")]
+    public void ThenTheDeployResponseContainsAValidDeployHash(){
+        WriteLine("the deploy response contains a valid deploy hash");
+        
+    }
+
+    [Then(@"request the block transfer")]
+    public void ThenRequestTheBlockTransfer(){
+        WriteLine("request the block transfer");
+        
+    }
+
+    [Then(@"request the block transfer from the test node")]
+    public void ThenRequestTheBlockTransferFromTheTestNode(){
+        WriteLine("request the block transfer from the test node");
+        
+    }
+
+    [Then(@"the returned block contains the transfer hash returned from the test node block")]
+    public void ThenTheReturnedBlockContainsTheTransferHashReturnedFromTheTestNodeBlock(){
+        WriteLine("the returned block contains the transfer hash returned from the test node block");
+        
+    }
 }
 
