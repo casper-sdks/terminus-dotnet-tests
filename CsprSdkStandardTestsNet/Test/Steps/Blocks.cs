@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Casper.Network.SDK;
+using Casper.Network.SDK.JsonRpc;
 using Casper.Network.SDK.Types;
 using CsprSdkStandardTestsNet.Test.Utils;
 using NUnit.Framework;
@@ -40,12 +41,19 @@ public class Blocks{
     }
 
     [Then(@"the body of the returned block is equal to the body of the returned test node block")]
-    public void ThenTheBodyOfTheReturnedBlockIsEqualToTheBodyOfTheReturnedTestNodeBlock(){
+    public async Task ThenTheBodyOfTheReturnedBlockIsEqualToTheBodyOfTheReturnedTestNodeBlock(){
         WriteLine("the body of the returned block is equal to the body of the returned test node block");
 
         var latestBlockSdk = (Block)_contextMap["blockDataSdk"];
         var latestBlockNode = (JsonNode)_contextMap["blockDataNode"];
 
+        if (!latestBlockSdk.Hash.Equals(latestBlockNode["hash"]?.ToString().ToLower())) {
+            //Fixes intermittent syncing issues with nctl/sdk latest blocks
+            var rpcResponse = await GetCasperService().GetBlock();
+            _contextMap["blockDataSdk"] = rpcResponse.Parse().Block;
+        }
+        
+        
         Assert.That(latestBlockSdk.Body, Is.Not.Null);
         Assert.That(latestBlockSdk.Body.Proposer.ToString().ToLower(), Is.EqualTo(latestBlockNode["body"]!["proposer"]?.ToString().ToLower()));
         
