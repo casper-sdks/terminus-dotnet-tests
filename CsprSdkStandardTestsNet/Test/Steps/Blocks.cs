@@ -18,6 +18,12 @@ public class Blocks{
     private static readonly TestProperties TestProperties = new();
     private readonly Dictionary<string, object> _contextMap = new();
     private readonly Nctl _nctl = new(TestProperties.DockerName);
+
+    private const string invalidBlockHash = "2fe9630b7790852e4409d815b04ca98f37effcdf9097d317b9b9b8ad658f47c8";
+    private const long invalidHeight = 9999999999;
+    private const string blockErrorMsg = "No such block";
+    private const string blockErrorCode = "-32001";
+
     
     private static NetCasperClient GetCasperService(){
         return CasperClientProvider.GetInstance().CasperService;
@@ -166,5 +172,70 @@ public class Blocks{
         
     }
     
+    [Given(@"that an invalid block hash is requested via the sdk")]
+    public void GivenThatAnInvalidBlockHashIsRequestedViaTheSdk() {
+        WriteLine("that an invalid block hash is requested via the sdk");
+
+        _contextMap["rpcClientException"] = 
+            Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(invalidBlockHash));
+
+    }
+
+    [Then(@"a valid error message is returned")]
+    public void ThenAValidErrorMessageIsReturned() {
+        WriteLine("a valid error message is returned");
+        
+        var rpcClientException  = (RpcClientException)_contextMap["rpcClientException"];
+
+        Assert.That(rpcClientException.RpcError, Is.Not.Null);
+        Assert.That(rpcClientException.RpcError.Code.ToString(), Is.EqualTo(blockErrorCode));
+        Assert.That(rpcClientException.RpcError.Message, Is.EqualTo(blockErrorMsg));
+        
+        
+    }
+
+    [Given(@"that an invalid block height is requested via the sdk")]
+    public void GivenThatAnInvalidBlockHeightIsRequestedViaTheSdk(){
+        WriteLine("that an invalid block height is requested via the sdk");
+        
+        _contextMap["rpcClientException"] =  
+            Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(unchecked((int)invalidHeight)));
+    }
+
+    [Given(@"that chain transfer data is initialised")]
+    public void GivenThatChainTransferDataIsInitialised(){
+        WriteLine("that chain transfer data is initialised");
+        
+    }
+
+    [When(@"the deploy data is put on chain")]
+    public void WhenTheDeployDataIsPutOnChain(){
+        WriteLine("the deploy data is put on chain");
+        
+    }
+
+    [Then(@"the deploy response contains a valid deploy hash")]
+    public void ThenTheDeployResponseContainsAValidDeployHash(){
+        WriteLine("the deploy response contains a valid deploy hash");
+        
+    }
+
+    [Then(@"request the block transfer")]
+    public void ThenRequestTheBlockTransfer(){
+        WriteLine("request the block transfer");
+        
+    }
+
+    [Then(@"request the block transfer from the test node")]
+    public void ThenRequestTheBlockTransferFromTheTestNode(){
+        WriteLine("request the block transfer from the test node");
+        
+    }
+
+    [Then(@"the returned block contains the transfer hash returned from the test node block")]
+    public void ThenTheReturnedBlockContainsTheTransferHashReturnedFromTheTestNodeBlock(){
+        WriteLine("the returned block contains the transfer hash returned from the test node block");
+        
+    }
 }
 
