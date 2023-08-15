@@ -28,3 +28,4 @@ Feature: Blocks Integration Tests
 
         Given that an invalid block height is requested via the sdk
         Then a valid error message is returned
+        
