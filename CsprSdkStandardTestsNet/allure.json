@@ -1,36 +1,36 @@
 {
-    "allure": {
-      "directory": "allure-results"
+  "allure": {
+    "directory": "allure-results"
+  },
+  "specflow": {
+    "stepArguments": {
+      "convertToParameters": "true",
+      "paramNameRegex": "",
+      "paramValueRegex": ""
     },
-    "specflow": {
-      "stepArguments": {
-        "convertToParameters": "true",
-        "paramNameRegex": "",
-        "paramValueRegex": ""
+    "grouping": {
+      "suites": {
+        "parentSuite": "^parentSuite:?(.+)",
+        "suite": "^suite:?(.+)",
+        "subSuite": "^subSuite:?(.+)"
       },
-      "grouping": {
-        "suites": {
-          "parentSuite": "^parentSuite:?(.+)",
-          "suite": "^suite:?(.+)",
-          "subSuite": "^subSuite:?(.+)"
-        },
-        "behaviors": {
-          "epic": "^epic:?(.+)",
-          "story": "^story:?(.+)"
-        },
-        "packages": {
-          "package": "^package:?(.+)",
-          "testClass": "^class:?(.+)",
-          "testMethod": "^method:?(.+)"
-        }
+      "behaviors": {
+        "epic": "^epic:?(.+)",
+        "story": "^story:?(.+)"
       },
-      "labels": {
-        "owner": "^owner:?(.+)",
-        "severity": "^(normal|blocker|critical|minor|trivial)"
-      },
-      "links": {
-        "issue": "^issue:(\\d+)",
-        "tms": "^tms:(\\d+)"
+      "packages": {
+        "package": "^package:?(.+)",
+        "testClass": "^class:?(.+)",
+        "testMethod": "^method:?(.+)"
       }
+    },
+    "labels": {
+      "owner": "^owner:?(.+)",
+      "severity": "^(normal|blocker|critical|minor|trivial)"
+    },
+    "links": {
+      "issue": "^issue:(\\d+)",
+      "tms": "^tms:(\\d+)"
     }
   }
+}
