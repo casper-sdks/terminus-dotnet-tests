@@ -7,6 +7,7 @@ using Casper.Network.SDK;
 using Casper.Network.SDK.JsonRpc;
 using Casper.Network.SDK.JsonRpc.ResultTypes;
 using Casper.Network.SDK.Types;
+using CsprSdkStandardTestsNet.Test.SSE;
 using CsprSdkStandardTestsNet.Test.Utils;
 using NUnit.Framework;
 using TechTalk.SpecFlow;
@@ -140,12 +141,12 @@ public class Blocks
         {
             Assert.That(proofsNode.Where(p => proofSdk.Signature != null &&
                                               p["signature"]!.ToString().ToLower()
-                                                  .Equals(proofSdk.Signature.ToString().ToLower())),
+                                                  .Equals(proofSdk.Signature.ToString()!.ToLower())),
                 Is.Not.Empty);
 
             Assert.That(proofsNode.Where(p => proofSdk.PublicKey != null &&
                                               p["public_key"]!.ToString().ToLower()
-                                                  .Equals(proofSdk.PublicKey.ToString().ToLower())),
+                                                  .Equals(proofSdk.PublicKey.ToString()!.ToLower())),
                 Is.Not.Empty);
         }
     }
@@ -245,51 +246,58 @@ public class Blocks
     }
 
     [When(@"the deploy data is put on chain")]
-    public async Task WhenTheDeployDataIsPutOnChain()
-    {
+    public async Task WhenTheDeployDataIsPutOnChain(){
         WriteLine("the deploy data is put on chain");
 
         var senderKey = (KeyPair)_contextMap["senderKey"];
-
+        
         var deploy = DeployTemplates.StandardTransfer(
             senderKey.PublicKey,
             (PublicKey)_contextMap["receiverKey"],
             (BigInteger)_contextMap["transferAmount"],
             100_000_000,
             "casper-net-1");
-
+        
         deploy.Sign(senderKey);
-
+        
         var putResponse = await GetCasperService().PutDeploy(deploy);
-
+        
         _contextMap["deployResult"] = putResponse;
-
+        
         WriteLine(putResponse);
     }
 
     [Then(@"the deploy response contains a valid deploy hash")]
-    public void ThenTheDeployResponseContainsAValidDeployHash()
-    {
+    public void ThenTheDeployResponseContainsAValidDeployHash(){
         WriteLine("the deploy response contains a valid deploy hash");
 
         var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
-
+        
         Assert.IsNotNull(deployResult);
         Assert.IsNotNull(deployResult.Parse().DeployHash);
-
+        
         WriteLine(deployResult.Parse().DeployHash);
     }
 
     [Then(@"request the block transfer")]
-    public void ThenRequestTheBlockTransfer()
-    {
+    public async void ThenRequestTheBlockTransfer(){
         WriteLine("request the block transfer");
+
+        var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
+        
+        var sseBlockAdded = new BlockAddedTask();
+        sseBlockAdded.HasTransferHashWithin(deployResult.Parse().DeployHash, 300000);
+        
+        _contextMap["transferBlockSdk"] = await GetCasperService().GetBlockTransfers();
+
     }
 
     [Then(@"request the block transfer from the test node")]
-    public void ThenRequestTheBlockTransferFromTheTestNode()
-    {
+    public void ThenRequestTheBlockTransferFromTheTestNode() {
         WriteLine("request the block transfer from the test node");
+        
+        
+        
     }
 
     [Then(@"the returned block contains the transfer hash returned from the test node block")]
