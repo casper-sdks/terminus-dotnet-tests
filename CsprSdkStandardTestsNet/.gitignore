@@ -2,3 +2,6 @@
 /bin/
 /obj/
 ../.idea/
+/.idea/
+../assets/
+../reports/

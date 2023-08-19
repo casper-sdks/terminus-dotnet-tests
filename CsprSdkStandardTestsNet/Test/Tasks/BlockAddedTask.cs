@@ -6,15 +6,17 @@ using CsprSdkStandardTestsNet.Test.Utils;
 using NUnit.Framework;
 using static System.Console;
 
-namespace CsprSdkStandardTestsNet.Test.SSE;
+namespace CsprSdkStandardTestsNet.Test.Tasks;
 
 public class BlockAddedTask{
 
     private static readonly TestProperties TestProperties = new();
 
     public void HasTransferHashWithin(string blockHash, int timeout){
+        
         var cts = new CancellationTokenSource();
         cts.CancelAfter(timeout);
+        
         Listen(blockHash, cts.Token);
 
         if (cts.IsCancellationRequested){
@@ -28,7 +30,7 @@ public class BlockAddedTask{
         var sse = new ServerEventsClient(TestProperties.Hostname, TestProperties.SsePort);
         var matched = false;
         
-        sse.AddEventCallback(EventType.BlockAdded, "catch-blocks-cb", async (SSEvent evt) => {
+        sse.AddEventCallback(EventType.BlockAdded, "blocks-added", async (SSEvent evt) => {
                 try{
 
                     var block = evt.Parse<BlockAdded>();

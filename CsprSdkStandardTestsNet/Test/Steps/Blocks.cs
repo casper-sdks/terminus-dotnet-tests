@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -7,7 +8,7 @@ using Casper.Network.SDK;
 using Casper.Network.SDK.JsonRpc;
 using Casper.Network.SDK.JsonRpc.ResultTypes;
 using Casper.Network.SDK.Types;
-using CsprSdkStandardTestsNet.Test.SSE;
+using CsprSdkStandardTestsNet.Test.Tasks;
 using CsprSdkStandardTestsNet.Test.Utils;
 using NUnit.Framework;
 using TechTalk.SpecFlow;
@@ -69,11 +70,11 @@ public class Blocks
 
 
         Assert.That(latestBlockSdk.Body, Is.Not.Null);
-        Assert.That(latestBlockSdk.Body.Proposer.ToString().ToLower(),
+        Assert.That(latestBlockSdk.Body.Proposer.ToString()!.ToLower(),
             Is.EqualTo(latestBlockNode["body"]!["proposer"]?.ToString().ToLower()));
 
         Assert.That(latestBlockSdk.Body, Is.Not.Null);
-        Assert.That(latestBlockSdk.Body.Proposer.ToString().ToLower(),
+        Assert.That(latestBlockSdk.Body.Proposer.ToString()!.ToLower(),
             Is.EqualTo(latestBlockNode["body"]!["proposer"]?.ToString().ToLower()));
 
         if (((JsonArray)latestBlockNode["body"]["deploy_hashes"])!.Count == 0)
@@ -280,7 +281,7 @@ public class Blocks
     }
 
     [Then(@"request the block transfer")]
-    public async void ThenRequestTheBlockTransfer(){
+    public async Task ThenRequestTheBlockTransfer(){
         WriteLine("request the block transfer");
 
         var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
@@ -288,7 +289,9 @@ public class Blocks
         var sseBlockAdded = new BlockAddedTask();
         sseBlockAdded.HasTransferHashWithin(deployResult.Parse().DeployHash, 300000);
         
-        _contextMap["transferBlockSdk"] = await GetCasperService().GetBlockTransfers();
+        var transferBlockSdk= await GetCasperService().GetBlockTransfers();
+        
+        _contextMap["transferBlockSdk"] = transferBlockSdk;
 
     }
 
@@ -296,13 +299,21 @@ public class Blocks
     public void ThenRequestTheBlockTransferFromTheTestNode() {
         WriteLine("request the block transfer from the test node");
         
-        
+        var transferData = (RpcResponse<GetBlockTransfersResult>)_contextMap["transferBlockSdk"];
+        _contextMap["transferBlockNode"] = _nctl.GetChainBlockTransfers(transferData.Parse().BlockHash);
         
     }
 
     [Then(@"the returned block contains the transfer hash returned from the test node block")]
-    public void ThenTheReturnedBlockContainsTheTransferHashReturnedFromTheTestNodeBlock()
-    {
+    public void ThenTheReturnedBlockContainsTheTransferHashReturnedFromTheTestNodeBlock(){
         WriteLine("the returned block contains the transfer hash returned from the test node block");
+
+        var transfers = _contextMap["transferBlockNode"];
+        var deployResult = _contextMap["deployResult"];
+        
+        Assert.Contains(deployResult, (ICollection)transfers);
+
+
+
     }
 }
