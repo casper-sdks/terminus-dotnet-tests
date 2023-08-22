@@ -4,9 +4,8 @@ namespace CsprSdkStandardTestsNet.Test.Utils;
 
 public class TestProperties
 {
-    public TestProperties()
-    {
-        Hostname = GetProperty("cspr.hostname", "192.168.1.130");
+    public TestProperties(){
+        Hostname = GetProperty("cspr.hostname", "localhost");
         DockerName = GetProperty("cspr.docker.name", "cspr-nctl");
         RcpPort = GetIntProperty("cspr.port.rcp", 11101);
         RestPort = GetIntProperty("cspr.port.rest", 14101);
@@ -23,14 +22,12 @@ public class TestProperties
 
     public int SsePort { get; set; }
 
-    private static int GetIntProperty(string name, int defaultValue)
-    {
+    private static int GetIntProperty(string name, int defaultValue){
         var property = GetProperty(name, null);
         return property != null ? int.Parse(property) : defaultValue;
     }
 
-    private static string GetProperty(string name, string defaultValue)
-    {
+    private static string GetProperty(string name, string defaultValue){
         var property = Environment.GetEnvironmentVariable(name);
         return property ?? defaultValue;
     }

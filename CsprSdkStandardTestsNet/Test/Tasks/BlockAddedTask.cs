@@ -8,6 +8,12 @@ using static System.Console;
 
 namespace CsprSdkStandardTestsNet.Test.Tasks;
 
+/**
+ * Starts a listener task for BlockAdded events
+ * Uses a CancellationToken to set a timeout  
+ */
+
+
 public class BlockAddedTask{
 
     private static readonly TestProperties TestProperties = new();
@@ -20,24 +26,22 @@ public class BlockAddedTask{
         Listen(blockHash, cts.Token);
 
         if (cts.IsCancellationRequested){
-            Assert.Fail("failed to find the required blockhash");
+            Assert.Fail("Timeout occured when waiting for BlockAdded event with specified hash.");
         }
         
     }
 
-    private void Listen(string blockHash, CancellationToken ct){
+    private static void Listen(string blockHash, CancellationToken ct){
 
         var sse = new ServerEventsClient(TestProperties.Hostname, TestProperties.SsePort);
         var matched = false;
         
-        sse.AddEventCallback(EventType.BlockAdded, "blocks-added", async (SSEvent evt) => {
+        sse.AddEventCallback(EventType.BlockAdded, "blocks-added",  (evt) => {
                 try{
-
+                   
                     var block = evt.Parse<BlockAdded>();
                     Assert.IsNotNull(block.BlockHash);
                     
-                    WriteLine(blockHash + "," + block.BlockHash);
-
                     if (block.Block.Body.TransferHashes.Contains(blockHash, StringComparer.OrdinalIgnoreCase)){
                         matched = true;
                     }

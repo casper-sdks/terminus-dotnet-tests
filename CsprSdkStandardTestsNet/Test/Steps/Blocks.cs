@@ -14,29 +14,34 @@ using NUnit.Framework;
 using TechTalk.SpecFlow;
 using static System.Console;
 
+
 namespace CsprSdkStandardTestsNet.Test.Steps;
+
+/**
+ * Block steps
+ */
+
 
 [Binding]
 public class Blocks
 {
-    private const string invalidBlockHash = "2fe9630b7790852e4409d815b04ca98f37effcdf9097d317b9b9b8ad658f47c8";
-    private const long invalidHeight = 9999999999;
-    private const string blockErrorMsg = "No such block";
-    private const string blockErrorCode = "-32001";
+    
+    private const string InvalidBlockHash = "2fe9630b7790852e4409d815b04ca98f37effcdf9097d317b9b9b8ad658f47c8";
+    private const long InvalidHeight = 9999999999;
+    private const string BlockErrorMsg = "No such block";
+    private const string BlockErrorCode = "-32001";
 
     private static readonly TestProperties TestProperties = new();
     private readonly Dictionary<string, object> _contextMap = new();
     private readonly Nctl _nctl = new(TestProperties.DockerName);
 
 
-    private static NetCasperClient GetCasperService()
-    {
+    private static NetCasperClient GetCasperService(){
         return CasperClientProvider.GetInstance().CasperService;
     }
 
     [Given(@"that the latest block is requested via the sdk")]
-    public async Task GivenThatTheLatestBlockIsRequestedViaTheSdk()
-    {
+    public async Task GivenThatTheLatestBlockIsRequestedViaTheSdk(){
         WriteLine("that the latest block is requested via the sdk");
 
         var rpcResponse = await GetCasperService().GetBlock();
@@ -46,28 +51,24 @@ public class Blocks
     }
 
     [Then(@"request the latest block via the test node")]
-    public void ThenRequestTheLatestBlockViaTheTestNode()
-    {
+    public void ThenRequestTheLatestBlockViaTheTestNode(){
         WriteLine("request the latest block via the test node");
 
         _contextMap.Add("blockDataNode", _nctl.GetChainBlock(""));
     }
 
     [Then(@"the body of the returned block is equal to the body of the returned test node block")]
-    public async Task ThenTheBodyOfTheReturnedBlockIsEqualToTheBodyOfTheReturnedTestNodeBlock()
-    {
+    public async Task ThenTheBodyOfTheReturnedBlockIsEqualToTheBodyOfTheReturnedTestNodeBlock(){
         WriteLine("the body of the returned block is equal to the body of the returned test node block");
 
         var latestBlockSdk = (Block)_contextMap["blockDataSdk"];
         var latestBlockNode = (JsonNode)_contextMap["blockDataNode"];
 
-        if (!latestBlockSdk.Hash.Equals(latestBlockNode["hash"]?.ToString().ToLower()))
-        {
+        if (!latestBlockSdk.Hash.Equals(latestBlockNode["hash"]?.ToString().ToLower())){
             //Fixes intermittent syncing issues with nctl/sdk latest blocks
             var rpcResponse = await GetCasperService().GetBlock();
             _contextMap["blockDataSdk"] = rpcResponse.Parse().Block;
         }
-
 
         Assert.That(latestBlockSdk.Body, Is.Not.Null);
         Assert.That(latestBlockSdk.Body.Proposer.ToString()!.ToLower(),
@@ -93,8 +94,7 @@ public class Blocks
     }
 
     [Then(@"the hash of the returned block is equal to the hash of the returned test node block")]
-    public void ThenTheHashOfTheReturnedBlockIsEqualToTheHashOfTheReturnedTestNodeBlock()
-    {
+    public void ThenTheHashOfTheReturnedBlockIsEqualToTheHashOfTheReturnedTestNodeBlock(){
         WriteLine("the hash of the returned block is equal to the hash of the returned test node block");
 
         var latestBlockSdk = (Block)_contextMap["blockDataSdk"];
@@ -104,8 +104,7 @@ public class Blocks
     }
 
     [Then(@"the header of the returned block is equal to the header of the returned test node block")]
-    public void ThenTheHeaderOfTheReturnedBlockIsEqualToTheHeaderOfTheReturnedTestNodeBlock()
-    {
+    public void ThenTheHeaderOfTheReturnedBlockIsEqualToTheHeaderOfTheReturnedTestNodeBlock(){
         WriteLine("the header of the returned block is equal to the header of the returned test node block");
 
         var latestBlockSdk = (Block)_contextMap["blockDataSdk"];
@@ -127,8 +126,7 @@ public class Blocks
     }
 
     [Then(@"the proofs of the returned block are equal to the proofs of the returned test node block")]
-    public void ThenTheProofsOfTheReturnedBlockAreEqualToTheProofsOfTheReturnedTestNodeBlock()
-    {
+    public void ThenTheProofsOfTheReturnedBlockAreEqualToTheProofsOfTheReturnedTestNodeBlock(){
         WriteLine("the proofs of the returned block are equal to the proofs of the returned test node block");
 
         var latestBlockSdk = (Block)_contextMap["blockDataSdk"];
@@ -153,8 +151,7 @@ public class Blocks
     }
 
     [Given(@"that a block is returned by height (.*) via the sdk")]
-    public async Task GivenThatABlockIsReturnedByHeightViaTheSdk(int height)
-    {
+    public async Task GivenThatABlockIsReturnedByHeightViaTheSdk(int height){
         WriteLine("that a block is returned by height {0} via the sdk", height);
 
         var rpcResponse = await GetCasperService().GetBlock(height);
@@ -164,16 +161,14 @@ public class Blocks
     }
 
     [Then(@"request the returned block from the test node via its hash")]
-    public void ThenRequestTheReturnedBlockFromTheTestNodeViaItsHash()
-    {
+    public void ThenRequestTheReturnedBlockFromTheTestNodeViaItsHash(){
         WriteLine("request the returned block from the test node via its hash");
 
         _contextMap["blockDataNode"] = _nctl.GetChainBlock(_contextMap["blockHashSdk"].ToString());
     }
 
     [Given(@"that a block is returned by hash via the sdk")]
-    public async Task GivenThatABlockIsReturnedByHashViaTheSdk()
-    {
+    public async Task GivenThatABlockIsReturnedByHashViaTheSdk(){
         WriteLine("that a block is returned by hash via the sdk");
 
         var rpcResponse = await GetCasperService().GetBlock();
@@ -186,46 +181,41 @@ public class Blocks
     }
 
     [Then(@"request a block by hash via the test node")]
-    public void ThenRequestABlockByHashViaTheTestNode()
-    {
+    public void ThenRequestABlockByHashViaTheTestNode(){
         WriteLine("request a block by hash via the test node");
 
         _contextMap["blockDataNode"] = _nctl.GetChainBlock(_contextMap["latestBlock"].ToString());
     }
 
     [Given(@"that an invalid block hash is requested via the sdk")]
-    public void GivenThatAnInvalidBlockHashIsRequestedViaTheSdk()
-    {
+    public void GivenThatAnInvalidBlockHashIsRequestedViaTheSdk(){
         WriteLine("that an invalid block hash is requested via the sdk");
 
         _contextMap["rpcClientException"] =
-            Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(invalidBlockHash));
+            Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(InvalidBlockHash));
     }
 
     [Then(@"a valid error message is returned")]
-    public void ThenAValidErrorMessageIsReturned()
-    {
+    public void ThenAValidErrorMessageIsReturned(){
         WriteLine("a valid error message is returned");
 
         var rpcClientException = (RpcClientException)_contextMap["rpcClientException"];
 
         Assert.That(rpcClientException.RpcError, Is.Not.Null);
-        Assert.That(rpcClientException.RpcError.Code.ToString(), Is.EqualTo(blockErrorCode));
-        Assert.That(rpcClientException.RpcError.Message, Is.EqualTo(blockErrorMsg));
+        Assert.That(rpcClientException.RpcError.Code.ToString(), Is.EqualTo(BlockErrorCode));
+        Assert.That(rpcClientException.RpcError.Message, Is.EqualTo(BlockErrorMsg));
     }
 
     [Given(@"that an invalid block height is requested via the sdk")]
-    public void GivenThatAnInvalidBlockHeightIsRequestedViaTheSdk()
-    {
+    public void GivenThatAnInvalidBlockHeightIsRequestedViaTheSdk(){
         WriteLine("that an invalid block height is requested via the sdk");
 
         _contextMap["rpcClientException"] =
-            Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(unchecked((int)invalidHeight)));
+            Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(unchecked((int)InvalidHeight)));
     }
 
     [Given(@"that chain transfer data is initialised")]
-    public void GivenThatChainTransferDataIsInitialised()
-    {
+    public void GivenThatChainTransferDataIsInitialised(){
         WriteLine("that chain transfer data is initialised");
 
         var senderPem = AssetUtils.GetUserKeyAsset(1, 1, "secret_key.pem");
@@ -308,12 +298,10 @@ public class Blocks
     public void ThenTheReturnedBlockContainsTheTransferHashReturnedFromTheTestNodeBlock(){
         WriteLine("the returned block contains the transfer hash returned from the test node block");
 
-        var transfers = _contextMap["transferBlockNode"];
-        var deployResult = _contextMap["deployResult"];
+        var transfers = (JsonNode)_contextMap["transferBlockNode"];
+        var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
         
-        Assert.Contains(deployResult, (ICollection)transfers);
-
-
+        Assert.That(transfers["body"]!["transfer_hashes"]!.ToString(), Does.Contain(deployResult.Parse().DeployHash));
 
     }
 }
