@@ -12,5 +12,4 @@ public static class AssetUtils {
 
         return path;
     }
-
 }
