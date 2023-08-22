@@ -12,9 +12,7 @@ namespace CsprSdkStandardTestsNet.Test.Tasks;
  * Starts a listener task for BlockAdded events
  * Uses a CancellationToken to set a timeout  
  */
-
-
-public class BlockAddedTask{
+public class BlockAddedTask {
 
     private static readonly TestProperties TestProperties = new();
 

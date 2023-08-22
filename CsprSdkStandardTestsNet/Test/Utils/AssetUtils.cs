@@ -2,10 +2,8 @@ using System.IO;
 
 namespace CsprSdkStandardTestsNet.Test.Utils;
 
-public class AssetUtils
-{
-    public static string GetUserKeyAsset(int networkId, int userId, string keyFilename)
-    {
+public static class AssetUtils {
+    public static string GetUserKeyAsset(int networkId, int userId, string keyFilename){
         var path = $"/net-{networkId}/user-{userId}/{keyFilename}";
 
         var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())!.Parent;
@@ -15,7 +13,4 @@ public class AssetUtils
         return path;
     }
 
-    // public static Url GetFaucetAsset(int networkId, string keyFilename){
-    //     
-    // }
 }

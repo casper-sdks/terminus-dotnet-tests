@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -14,17 +13,13 @@ using NUnit.Framework;
 using TechTalk.SpecFlow;
 using static System.Console;
 
-
 namespace CsprSdkStandardTestsNet.Test.Steps;
 
 /**
  * Block steps
  */
-
-
 [Binding]
-public class Blocks
-{
+public class Blocks {
     
     private const string InvalidBlockHash = "2fe9630b7790852e4409d815b04ca98f37effcdf9097d317b9b9b8ad658f47c8";
     private const long InvalidHeight = 9999999999;
@@ -34,7 +29,6 @@ public class Blocks
     private static readonly TestProperties TestProperties = new();
     private readonly Dictionary<string, object> _contextMap = new();
     private readonly Nctl _nctl = new(TestProperties.DockerName);
-
 
     private static NetCasperClient GetCasperService(){
         return CasperClientProvider.GetInstance().CasperService;

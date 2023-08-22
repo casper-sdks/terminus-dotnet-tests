@@ -1,13 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using Casper.Network.SDK.Types;
 
 namespace CsprSdkStandardTestsNet.Test.Utils;
 
-public class Nctl{
+public class Nctl {
     private readonly string _dockerName;
 
     public Nctl(string dockerName){
