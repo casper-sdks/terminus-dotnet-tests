@@ -1,0 +1,49 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Casper.Network.SDK;
+using CsprSdkStandardTestsNet.Test.Utils;
+using NUnit.Framework;
+using TechTalk.SpecFlow;
+using static System.Console;
+
+namespace CsprSdkStandardTestsNet.Test.Steps;
+
+/**
+ * Step definitions for get_state_root_hash
+ */
+
+[Binding]
+public class GetStateRootHashStepDefinitions {
+    
+    private static readonly TestProperties TestProperties = new();
+    private readonly Dictionary<string, object> _contextMap = new();
+    private readonly Nctl _nctl = new(TestProperties.DockerName);
+
+    private static NetCasperClient GetCasperService(){
+        return CasperClientProvider.GetInstance().CasperService;
+    }
+    
+    [Given(@"that the chain_get_state_root_hash RCP method is invoked against nctl")]
+    public async Task GivenThatTheChainGetStateRootHashRcpMethodIsInvokedAgainstNctl(){
+        WriteLine("that the chain_get_state_root_hash RCP method is invoked against nctl");
+
+        var rpcResponse = await GetCasperService().GetStateRootHash();
+        
+        _contextMap["STATE_ROOT_HASH"] = rpcResponse;
+        
+    }
+
+    [Then(@"a valid chain_get_state_root_hash_result is returned")]
+    public void ThenAValidChainGetStateRootHashResultIsReturned(){
+        WriteLine("a valid chain_get_state_root_hash_result is returned");
+
+        var stateRootHash = _contextMap["STATE_ROOT_HASH"];
+        
+        Assert.That(stateRootHash, Is.Not.Null);
+
+        var expectedStateRootHash = _nctl.GetStateRootHash(1);
+        
+        Assert.That(stateRootHash, Is.EqualTo(expectedStateRootHash));
+
+    }
+}
