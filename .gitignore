@@ -1,1 +1,6 @@
 /.idea/
+CsprSdkStandardTestsNet/assets/
+CsprSdkStandardTestsNet/bin/
+CsprSdkStandardTestsNet/obj/
+CsprSdkStandardTestsNet/reports/
+*.user

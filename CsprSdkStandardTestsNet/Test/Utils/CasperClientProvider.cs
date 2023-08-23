@@ -4,19 +4,15 @@ using Casper.Network.SDK.SSE;
 
 namespace CsprSdkStandardTestsNet.Test.Utils;
 
-public class CasperClientProvider{
-    
+public class CasperClientProvider {
     private static CasperClientProvider _instance;
 
-    public static  CasperClientProvider GetInstance(){
-        return _instance ??= new CasperClientProvider();
-    }
-    
     private CasperClientProvider() {
-        try {
+        try{
             var properties = new TestProperties();
             CasperService = new NetCasperClient("http://" + properties.Hostname + ":" + properties.RcpPort + "/rpc");
-        } catch (Exception exception) {
+        }
+        catch (Exception exception) {
             throw new Exception(exception.ToString());
         }
     }
@@ -24,4 +20,8 @@ public class CasperClientProvider{
     public NetCasperClient CasperService { get; set; }
 
     public ServerEventsClient EventService { get; set; }
+
+    public static CasperClientProvider GetInstance() {
+        return _instance ??= new CasperClientProvider();
+    }
 }
