@@ -16,7 +16,7 @@ public class BlockAddedTask {
 
     private static readonly TestProperties TestProperties = new();
 
-    public void HasTransferHashWithin(string blockHash, int timeout){
+    public void HasTransferHashWithin(string blockHash, int timeout) {
         
         var cts = new CancellationTokenSource();
         cts.CancelAfter(timeout);
@@ -26,10 +26,9 @@ public class BlockAddedTask {
         if (cts.IsCancellationRequested){
             Assert.Fail("Timeout occured when waiting for BlockAdded event with specified hash.");
         }
-        
     }
 
-    private static void Listen(string blockHash, CancellationToken ct){
+    private static void Listen(string blockHash, CancellationToken ct) {
 
         var sse = new ServerEventsClient(TestProperties.Hostname, TestProperties.SsePort);
         var matched = false;
@@ -52,13 +51,11 @@ public class BlockAddedTask {
             startFrom: 1);
 
         sse.StartListening();
+
         while (!ct.IsCancellationRequested && !matched){
             Thread.Sleep(1000);
         }
 
         sse.StopListening();
-
     }
-
-
 }
