@@ -12,24 +12,24 @@ namespace CsprSdkStandardTestsNet.Test.Utils;
 public class Nctl {
     private readonly string _dockerName;
 
-    public Nctl(string dockerName){
+    public Nctl(string dockerName) {
         _dockerName = dockerName;
     }
 
-    public JsonNode GetChainBlock(string blockHash){
+    public JsonNode GetChainBlock(string blockHash) {
         return Execute("view_chain_block.sh", "block=" + blockHash, ParseJson);
     }
     
-    public JsonNode GetChainBlockTransfers(string blockHash){
+    public JsonNode GetChainBlockTransfers(string blockHash) {
         return Execute("view_chain_block_transfers.sh", "block=" + blockHash, ParseJson);
     }
     
-    public string GetStateRootHash(int nodeId){
+    public string GetStateRootHash(int nodeId) {
         return Execute("view_chain_state_root_hash.sh", "node=" + nodeId, ParseString)
             .Split("=")[1].Trim();
     }
 
-    private T Execute<T>(string shellCommand, string parameters, Func<string, T> func){
+    private T Execute<T> (string shellCommand, string parameters, Func<string, T> func) {
         
         ProcessStartInfo startInfo = new(){
             FileName = "docker",
@@ -48,11 +48,11 @@ public class Nctl {
 
     }
 
-    private static JsonNode ParseJson(string input){
+    private static JsonNode ParseJson(string input) {
         return JsonNode.Parse(ReplaceAnsiConsoleCodes(input));
     }
     
-    private static string ParseString(string input){
+    private static string ParseString(string input) {
         return ReplaceAnsiConsoleCodes(input);
     }
     

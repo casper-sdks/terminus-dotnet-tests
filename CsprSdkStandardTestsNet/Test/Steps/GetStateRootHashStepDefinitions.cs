@@ -19,12 +19,12 @@ public class GetStateRootHashStepDefinitions {
     private readonly Dictionary<string, object> _contextMap = new();
     private readonly Nctl _nctl = new(TestProperties.DockerName);
 
-    private static NetCasperClient GetCasperService(){
+    private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
     }
     
     [Given(@"that the chain_get_state_root_hash RCP method is invoked against nctl")]
-    public async Task GivenThatTheChainGetStateRootHashRcpMethodIsInvokedAgainstNctl(){
+    public async Task GivenThatTheChainGetStateRootHashRcpMethodIsInvokedAgainstNctl() {
         WriteLine("that the chain_get_state_root_hash RCP method is invoked against nctl");
 
         var rpcResponse = await GetCasperService().GetStateRootHash();
@@ -34,7 +34,7 @@ public class GetStateRootHashStepDefinitions {
     }
 
     [Then(@"a valid chain_get_state_root_hash_result is returned")]
-    public void ThenAValidChainGetStateRootHashResultIsReturned(){
+    public void ThenAValidChainGetStateRootHashResultIsReturned() {
         WriteLine("a valid chain_get_state_root_hash_result is returned");
 
         var stateRootHash = _contextMap["STATE_ROOT_HASH"];
