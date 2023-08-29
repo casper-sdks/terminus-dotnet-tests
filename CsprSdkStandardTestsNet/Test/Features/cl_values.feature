@@ -38,10 +38,10 @@ Feature: CL Values
     Then it's bytes will be "0500000005000000416c70686104000000426574610400000047616d610500000044656c746107000000457073696c6f6e"
     Given that the CL complex value of type "Map" with an internal types of "String,String,String" values of "ACME,20000,true"
     Then it's bytes will be "0300000001000000300400000041434d45010000003105000000323030303001000000320400000074727565"
-#    When the values are added as arguments to a deploy
-#    And the deploy is put on chain
-#    Then the deploy response contains a valid deploy hash of length 64 and an API version "1.0.0"
-#    And the deploy has successfully executed
+    When the values are added as arguments to a deploy
+    And the deploy is put on chain
+    Then the deploy response contains a valid deploy hash of length 64 and an API version "1.0.0"
+    And the deploy has successfully executed
 #    When the deploy is obtained from the node
 #    Then the deploys NamedArgument "String" has a value of "ACME" and bytes of "0400000041434d45"
 #    And the deploys NamedArgument "U8" has a value of "8" and bytes of "08"
