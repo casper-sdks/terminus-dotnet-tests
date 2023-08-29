@@ -29,14 +29,21 @@ public class CLValuesDefinitions {
         
         CLValue clValue = (CLValue)_contextMap["clValue"];
         
-        Assert.That(hexBytes.ToUpper(), 
-            Is.EqualTo(BitConverter.ToString(clValue.Bytes).Replace("-","")));    
+        Assert.That(hexBytes.ToUpper(), Is.EqualTo(GetHexValue(clValue)));    
 
     }
 
     [Given(@"that the CL complex value of type ""(.*)"" with an internal types of ""(.*)"" values of ""(.*)""")]
-    public void GivenThatTheClComplexValueOfTypeWithAnInternalTypesOfValuesOf(string type, string innerTypes, string innerValues) {
+    public void GivenThatTheClComplexValueOfTypeWithAnInternalTypesOfValuesOf(CLType type, string innerTypes, string innerValues) {
         WriteLine("that the CL complex value of type {0} with an internal types of {1} values of {2}", type, innerTypes, innerValues);
+        
+        var types = GetInnerClTypeData(innerTypes);
+        var values = new List<string>(innerValues.Split(","));
+        
+        var complexValue = _cLValueFactory.CreateComplexValue(type, types, values);
+
+        _contextMap["clValue"] = complexValue;
+
     }
 
     [When(@"the values are added as arguments to a deploy")]
@@ -73,5 +80,34 @@ public class CLValuesDefinitions {
     public void ThenTheDeployResponseContainsAValidDeployHashOfLengthAndAnApiVersion(int hashLength, string apiVersion) {
         WriteLine("the deploy response contains a valid deploy hash of length {0} and an API version {1}", hashLength, apiVersion);
     }
+    
+    private string GetHexValue(CLValue clValue) {
+
+        var clValueHex = BitConverter.ToString(clValue.Bytes).Replace("-", "");
+        
+        if (clValue.TypeInfo.Type.Equals(CLType.Key)) {
+            clValueHex = clValueHex[2..];
+        }
+
+        return clValueHex;
+
+    }
+    
+    private List<CLType> GetInnerClTypeData(string innerTypes) {
+
+        List<CLType> types = new List<CLType>();
+        
+        var list = new List<string>(innerTypes.Split(","));
+        
+        foreach (var s in list) {
+            types!.Add((CLType)Enum.Parse(typeof(CLType), s, true));
+        }
+
+        return types;
+
+    }
+    
+    
+    
     
 }
