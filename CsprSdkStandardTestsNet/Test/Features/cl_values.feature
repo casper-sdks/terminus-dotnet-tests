@@ -42,8 +42,8 @@ Feature: CL Values
     And the deploy is put on chain
     Then the deploy response contains a valid deploy hash of length 64 and an API version "1.0.0"
     And the deploy has successfully executed
-#    When the deploy is obtained from the node
-#    Then the deploys NamedArgument "String" has a value of "ACME" and bytes of "0400000041434d45"
+    When the deploy is obtained from the node
+    Then the deploys NamedArgument "String" has a value of "ACME" and bytes of "0400000041434d45"
 #    And the deploys NamedArgument "U8" has a value of "8" and bytes of "08"
 #    And the deploys NamedArgument "U32" has a value of "100000" and bytes of "a0860100"
 #    And the deploys NamedArgument "U64" has a value of "1000000" and bytes of "40420f0000000000"

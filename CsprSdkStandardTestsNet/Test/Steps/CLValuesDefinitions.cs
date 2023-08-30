@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+using System.Threading;
 using System.Threading.Tasks;
 using Casper.Network.SDK;
 using Casper.Network.SDK.JsonRpc;
@@ -102,8 +104,27 @@ public class CLValuesDefinitions {
     
     
     [Then(@"the deploys NamedArgument ""(.*)"" has a value of ""(.*)"" and bytes of ""(.*)""")]
-    public void ThenTheDeploysNamedArgumentHasAValueOfAndBytesOf(string name, string strValue, string hexBytes) {
+    public void ThenTheDeploysNamedArgumentHasAValueOfAndBytesOf(CLType name, string strValue, string hexBytes) {
         WriteLine("the deploys NamedArgument {0} has a value of {1} and bytes of {2}", name, strValue, hexBytes);
+        
+        var deploy = (RpcResponse<GetDeployResult>)_contextMap["getDeploy"];
+
+        var optionalNamedArg = deploy.Parse().Deploy.Session.RuntimeArgs.Where(n => n.Name.Equals(name));
+        
+        Assert.That(optionalNamedArg, Is.Not.Null);            
+        
+        WriteLine(optionalNamedArg);
+
+        // object value = CLTypeUtils.ConvertToClTypeValue(name, strValue);
+
+        // final NamedArg<?> namedArg = optionalNamedArg.get();
+        // assertThat(namedArg.getClValue().getValue(), is(value));
+        // assertThat(namedArg.getClValue().getBytes(), is(hexBytes));
+        // assertThat(namedArg.getClValue().getClType().getTypeName(), is(name));
+        // assertThat(namedArg.getClValue().getBytes(), is(hexBytes));
+        
+        
+        
     }
 
     [Then(@"the deploys NamedArgument Complex value ""(.*)"" has internal types of ""(.*)"" and values of ""(.*)"" and bytes of ""(.*)""")]
@@ -139,6 +160,7 @@ public class CLValuesDefinitions {
         RpcResponse<GetDeployResult> deploy = null;
         
         while (results == 0) {
+            Thread.Sleep(10000);
             deploy = await GetCasperService().GetDeploy(deployResult.Parse().DeployHash, true);
             results = deploy.Parse().ExecutionResults.Count;
         }
@@ -148,8 +170,15 @@ public class CLValuesDefinitions {
     }
 
     [When(@"the deploy is obtained from the node")]
-    public void WhenTheDeployIsObtainedFromTheNode() {
+    public async Task WhenTheDeployIsObtainedFromTheNode() {
         WriteLine("the deploy is obtained from the node");
+        
+        var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
+        var deploy = await GetCasperService().GetDeploy(deployResult.Parse().DeployHash, true);
+        
+        Assert.That(deploy, Is.Not.Null);
+        _contextMap["getDeploy"] = deploy;
+        
     }
 
     [Then(@"the deploy response contains a valid deploy hash of length (.*) and an API version ""(.*)""")]
