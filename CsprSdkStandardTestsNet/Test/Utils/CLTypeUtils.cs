@@ -32,14 +32,14 @@ public class CLTypeUtils {
                 case CLType.ByteArray:
                     return Hex.Decode(value);
 
-                // case CLType.Key:
-                //     return CLValue.Key(value);
-                //
-                // case PUBLIC_KEY:
-                //     return PublicKey.fromTaggedHexString(value);
-                //
-                // case UREF:
-                //     return new URef(Hex.decode(value), URefAccessRight.READ_ADD_WRITE);
+                case CLType.Key:
+                    return "account-hash-" + value;
+                
+                case CLType.PublicKey:
+                    return value;
+                
+                case CLType.URef:
+                    return new URef(Hex.Decode(value), AccessRights.READ_ADD_WRITE);
 
                 default:
                     throw new ArgumentException("Not implemented conversion for type " + typeName);

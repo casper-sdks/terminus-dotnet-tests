@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Casper.Network.SDK;
@@ -109,28 +110,70 @@ public class CLValuesDefinitions {
         
         var deploy = (RpcResponse<GetDeployResult>)_contextMap["getDeploy"];
 
-        var optionalNamedArg = deploy.Parse().Deploy.Session.RuntimeArgs.Where(n => n.Name.Equals(name));
+        var namedArg = deploy.Parse().Deploy.Session.RuntimeArgs.Find(n => n.Name.Equals(name.ToString()));
         
-        Assert.That(optionalNamedArg, Is.Not.Null);            
-        
-        WriteLine(optionalNamedArg);
+        Assert.That(namedArg, Is.Not.Null);
 
-        // object value = CLTypeUtils.ConvertToClTypeValue(name, strValue);
-
-        // final NamedArg<?> namedArg = optionalNamedArg.get();
-        // assertThat(namedArg.getClValue().getValue(), is(value));
-        // assertThat(namedArg.getClValue().getBytes(), is(hexBytes));
-        // assertThat(namedArg.getClValue().getClType().getTypeName(), is(name));
-        // assertThat(namedArg.getClValue().getBytes(), is(hexBytes));
+        var value = CLTypeUtils.ConvertToClTypeValue(name, strValue);
         
-        
+        Assert.That(namedArg.Value.ToString()!.ToUpper(), Is.EqualTo(value.ToString()!.ToUpper()));
+        Assert.That(GetHexValue(namedArg.Value), Is.EqualTo(hexBytes.ToUpper()));
+        Assert.That(namedArg.Value.TypeInfo.Type, Is.EqualTo(name));
         
     }
 
     [Then(@"the deploys NamedArgument Complex value ""(.*)"" has internal types of ""(.*)"" and values of ""(.*)"" and bytes of ""(.*)""")]
-    public void ThenTheDeploysNamedArgumentComplexValueHasInternalTypesOfAndValuesOfAndBytesOf(string name, string types, string values, string bytes) {
+    public void ThenTheDeploysNamedArgumentComplexValueHasInternalTypesOfAndValuesOfAndBytesOf(CLType name, string types, string values, string bytes) {
         WriteLine("the deploys NamedArgument Complex value {0} has internal types of {1} and values of {2} and bytes of {3}");
+        
+        var deploy = (RpcResponse<GetDeployResult>)_contextMap["getDeploy"];
+        
+        var namedArg = deploy.Parse().Deploy.Session.RuntimeArgs.Find(n => n.Name.Equals(name.ToString()));
+
+        var typeInfo = namedArg.Value.TypeInfo;
+        
+        Assert.That(namedArg, Is.Not.Null);
+
+             
+        switch (name) {
+            
+            case CLType.Option:
+                AssertOption(namedArg, types, values);
+                break;
+            
+        }
+        
+        
     }
+
+
+    private string GetSimpleType(NamedArg arg) {
+
+        return Regex.Match(arg.Value.TypeInfo.ToString()!, @"\(([^)]*)\)").Groups[1].Value;
+
+    }
+    
+
+    private void AssertOption(NamedArg arg, string types, string values) {
+
+        var argType = (CLType)Enum.Parse(typeof(CLType), GetSimpleType(arg), true);
+
+        var type = (CLType)Enum.Parse(typeof(CLType), types, true);
+        var innerValue = _cLValueFactory.CreateValue(type, values);
+
+        Assert.That(arg, Is.Not.Null);
+        
+        AssertClValues(arg.Value, innerValue, argType);
+
+    }
+
+    private void AssertClValues(CLValue actual, CLValue expected, CLType type) {
+        
+        Assert.That(actual.TypeInfo, Is.EqualTo(expected.TypeInfo));
+        Assert.That(actual.Bytes, Is.EqualTo(expected.Bytes));
+        
+    }
+    
 
     [When(@"the deploy is put on chain")]
     public async Task WhenTheDeployIsPutOnChain() {
@@ -236,8 +279,5 @@ public class CLValuesDefinitions {
         clValues.Add(new NamedArg(type.ToString() , value));
 
     }
-    
-    
-    
-    
+
 }
