@@ -123,7 +123,7 @@ public partial class CLValuesDefinitions {
         
         Assert.That(namedArg, Is.Not.Null);
 
-        Assert.That(namedArg.Value.Bytes, Is.EqualTo(bytes));
+        Assert.That(GetHexValue(namedArg.Value), Is.EqualTo(bytes.ToUpper()));
 
         // switch (name) {
         //     
@@ -236,7 +236,7 @@ public partial class CLValuesDefinitions {
 
 
     private string GetSimpleType(NamedArg arg) {
-        return ExtractType().Match(arg.Value.TypeInfo.ToString()).Groups[1].Value;
+        return ExtractType().Match(arg.Value.TypeInfo.ToString()!).Groups[1].Value;
     }
     
 
