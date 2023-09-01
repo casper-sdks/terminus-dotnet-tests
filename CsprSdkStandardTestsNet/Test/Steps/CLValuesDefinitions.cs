@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -18,8 +17,7 @@ using static System.Console;
 namespace CsprSdkStandardTestsNet.Test.Steps;
 
 [Binding]
-public class CLValuesDefinitions {
-    
+public partial class CLValuesDefinitions {
     
     private readonly CLValueFactory _cLValueFactory = new();
     private readonly Dictionary<string, object> _contextMap = new();
@@ -61,7 +59,7 @@ public class CLValuesDefinitions {
     }
 
     [When(@"the values are added as arguments to a deploy")]
-    public async Task WhenTheValuesAreAddedAsArgumentsToADeploy() {
+    public void WhenTheValuesAreAddedAsArgumentsToADeploy() {
         WriteLine("the values are added as arguments to a deploy");
         
         var runtimeArgs = new List<NamedArg>
@@ -73,7 +71,7 @@ public class CLValuesDefinitions {
         var clValues = (List<NamedArg>)_contextMap["clValues"];
         runtimeArgs.AddRange(clValues);
 
-        var session = new Transfer(runtimeArgs);
+        var session = new TransferDeploy(runtimeArgs);
 
         var senderKey = KeyPair.FromPem(AssetUtils.GetUserKeyAsset(1, 1, "secret_key.pem"));
        
@@ -93,16 +91,7 @@ public class CLValuesDefinitions {
         _contextMap["deploy"] = deploy;
 
     }
-
-    private class Transfer: TransferDeployItem {
-        public override byte Tag() => 5;
-        public override string JsonPropertyName() => "Transfer";
-        public Transfer() { }
-        public Transfer(List<NamedArg> args) {
-            RuntimeArgs = args;
-        }
-    }
-    
+   
     
     [Then(@"the deploys NamedArgument ""(.*)"" has a value of ""(.*)"" and bytes of ""(.*)""")]
     public void ThenTheDeploysNamedArgumentHasAValueOfAndBytesOf(CLType name, string strValue, string hexBytes) {
@@ -130,50 +119,42 @@ public class CLValuesDefinitions {
         
         var namedArg = deploy.Parse().Deploy.Session.RuntimeArgs.Find(n => n.Name.Equals(name.ToString()));
 
-        var typeInfo = namedArg.Value.TypeInfo;
+        // var typeInfo = namedArg.Value.TypeInfo;
         
         Assert.That(namedArg, Is.Not.Null);
 
-             
-        switch (name) {
-            
-            case CLType.Option:
-                AssertOption(namedArg, types, values);
-                break;
-            
-        }
-        
-        
+        Assert.That(namedArg.Value.Bytes, Is.EqualTo(bytes));
+
+        // switch (name) {
+        //     
+        //     case CLType.Option:
+        //         AssertOption(namedArg, types, values);
+        //         break;
+        //     
+        //     case CLType.List:
+        //         AssertList(namedArg, types, values);
+        //         break;
+        //     
+        //     case CLType.Map:
+        //         AssertMap(namedArg, types, values);
+        //         break;
+        //     
+        //     case CLType.Tuple1:
+        //         AssertTupleOne(namedArg, types, values);
+        //         break;
+        //     
+        //     case CLType.Tuple2:
+        //         AssertTupleTwo(namedArg, types, values);
+        //         break;
+        //     
+        //     case CLType.Tuple3:
+        //         AssertTupleThree(namedArg, types, values);
+        //         break;
+        //     
+        // }
+
     }
-
-
-    private string GetSimpleType(NamedArg arg) {
-
-        return Regex.Match(arg.Value.TypeInfo.ToString()!, @"\(([^)]*)\)").Groups[1].Value;
-
-    }
-    
-
-    private void AssertOption(NamedArg arg, string types, string values) {
-
-        var argType = (CLType)Enum.Parse(typeof(CLType), GetSimpleType(arg), true);
-
-        var type = (CLType)Enum.Parse(typeof(CLType), types, true);
-        var innerValue = _cLValueFactory.CreateValue(type, values);
-
-        Assert.That(arg, Is.Not.Null);
-        
-        AssertClValues(arg.Value, innerValue, argType);
-
-    }
-
-    private void AssertClValues(CLValue actual, CLValue expected, CLType type) {
-        
-        Assert.That(actual.TypeInfo, Is.EqualTo(expected.TypeInfo));
-        Assert.That(actual.Bytes, Is.EqualTo(expected.Bytes));
-        
-    }
-    
+   
 
     [When(@"the deploy is put on chain")]
     public async Task WhenTheDeployIsPutOnChain() {
@@ -199,16 +180,11 @@ public class CLValuesDefinitions {
         
         var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
 
-        var results = 0;
-        RpcResponse<GetDeployResult> deploy = null;
+        RpcResponse<GetDeployResult> deploy = await GetCasperService().GetDeploy(deployResult.Parse().DeployHash, true,
+            new CancellationTokenSource(TimeSpan.FromSeconds(300)).Token);
+       
         
-        while (results == 0) {
-            Thread.Sleep(10000);
-            deploy = await GetCasperService().GetDeploy(deployResult.Parse().DeployHash, true);
-            results = deploy.Parse().ExecutionResults.Count;
-        }
-        
-        Assert.That(deploy.Parse().ExecutionResults[0].IsSuccess);
+        Assert.That(deploy!.Parse().ExecutionResults[0].IsSuccess);
         
     }
 
@@ -236,6 +212,54 @@ public class CLValuesDefinitions {
         Assert.That(deployResult.Parse().ApiVersion, Is.EqualTo(apiVersion));
 
     }
+    
+    
+    private void AssertTupleThree(NamedArg namedArg, string types, string values) {
+        throw new NotImplementedException();
+    }
+
+    private void AssertTupleTwo(NamedArg namedArg, string types, string values) {
+        throw new NotImplementedException();
+    }
+
+    private void AssertTupleOne(NamedArg namedArg, string types, string values) {
+        throw new NotImplementedException();
+    }
+
+    private void AssertMap(NamedArg namedArg, string types, string values) {
+        throw new NotImplementedException();
+    }
+
+    private void AssertList(NamedArg namedArg, string types, string values) {
+        throw new NotImplementedException();
+    }
+
+
+    private string GetSimpleType(NamedArg arg) {
+        return ExtractType().Match(arg.Value.TypeInfo.ToString()).Groups[1].Value;
+    }
+    
+
+    private void AssertOption(NamedArg arg, string types, string values) {
+
+        var argType = (CLType)Enum.Parse(typeof(CLType), GetSimpleType(arg), true);
+
+        var type = (CLType)Enum.Parse(typeof(CLType), types, true);
+        var innerValue = _cLValueFactory.CreateValue(type, values);
+
+        Assert.That(arg, Is.Not.Null);
+        
+        AssertClValues(arg.Value, innerValue, argType);
+
+    }
+
+    private void AssertClValues(CLValue actual, CLValue expected, CLType type) {
+        
+        Assert.That(actual.TypeInfo, Is.EqualTo(expected.TypeInfo));
+        Assert.That(actual.Bytes, Is.EqualTo(expected.Bytes));
+        
+    }
+    
     
     private string GetHexValue(CLValue clValue) {
 
@@ -280,4 +304,6 @@ public class CLValuesDefinitions {
 
     }
 
+    [GeneratedRegex("\\(([^)]*)\\)")]
+    private static partial Regex ExtractType();
 }

@@ -265,7 +265,7 @@ public class Blocks {
     }
 
     [Then(@"request the block transfer")]
-    public async Task ThenRequestTheBlockTransfer() {
+    public void ThenRequestTheBlockTransfer() {
         WriteLine("request the block transfer");
 
         var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
