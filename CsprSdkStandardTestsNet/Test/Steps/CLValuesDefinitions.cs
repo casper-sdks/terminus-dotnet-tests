@@ -21,7 +21,6 @@ namespace CsprSdkStandardTestsNet.Test.Steps;
 [Binding]
 public partial class CLValuesDefinitions {
     
-    private readonly CLValueFactory _cLValueFactory = new();
     private readonly Dictionary<string, object> _contextMap = new();
     
     private static NetCasperClient GetCasperService() {

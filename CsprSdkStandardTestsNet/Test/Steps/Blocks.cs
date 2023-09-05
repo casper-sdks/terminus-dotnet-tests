@@ -273,7 +273,6 @@ public class Blocks {
         var sseBlockAdded = new BlockAddedTask();
         sseBlockAdded.HasTransferHashWithin(deployResult.Parse().DeployHash, 300000);
         
-
     }
 
     [Then(@"request the block transfer from the test node")]
