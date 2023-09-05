@@ -231,24 +231,9 @@ public partial class CLValuesDefinitions {
     private void AssertList(NamedArg namedArg, string types, string values) {
         throw new NotImplementedException();
     }
-
-
-    private string GetSimpleType(NamedArg arg) {
-        return ExtractType().Match(arg.Value.TypeInfo.ToString()).Groups[1].Value;
-    }
     
-
     private void AssertOption(NamedArg arg, string types, string values) {
-
-        var argType = (CLType)Enum.Parse(typeof(CLType), GetSimpleType(arg), true);
-
-        var type = (CLType)Enum.Parse(typeof(CLType), types, true);
-        var innerValue = _cLValueFactory.CreateValue(type, values);
-
-        Assert.That(arg, Is.Not.Null);
-        
-        AssertClValues(arg.Value, innerValue, argType);
-
+        throw new NotImplementedException();
     }
 
     private void AssertClValues(CLValue actual, CLValue expected, CLType type) {
@@ -302,6 +287,4 @@ public partial class CLValuesDefinitions {
 
     }
 
-    [GeneratedRegex("\\(([^)]*)\\)")]
-    private static partial Regex ExtractType();
 }
