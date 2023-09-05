@@ -118,40 +118,38 @@ public partial class CLValuesDefinitions {
         var deploy = (RpcResponse<GetDeployResult>)_contextMap["getDeploy"];
         
         var namedArg = deploy.Parse().Deploy.Session.RuntimeArgs.Find(n => n.Name.Equals(name.ToString()));
-
-        // var typeInfo = namedArg.Value.TypeInfo;
         
         Assert.That(namedArg, Is.Not.Null);
 
-        Assert.That(namedArg.Value.Bytes, Is.EqualTo(bytes));
+        Assert.That(namedArg.Value.Bytes, Is.EqualTo(GetHexValue(bytes)));
 
-        // switch (name) {
-        //     
-        //     case CLType.Option:
-        //         AssertOption(namedArg, types, values);
-        //         break;
-        //     
-        //     case CLType.List:
-        //         AssertList(namedArg, types, values);
-        //         break;
-        //     
-        //     case CLType.Map:
-        //         AssertMap(namedArg, types, values);
-        //         break;
-        //     
-        //     case CLType.Tuple1:
-        //         AssertTupleOne(namedArg, types, values);
-        //         break;
-        //     
-        //     case CLType.Tuple2:
-        //         AssertTupleTwo(namedArg, types, values);
-        //         break;
-        //     
-        //     case CLType.Tuple3:
-        //         AssertTupleThree(namedArg, types, values);
-        //         break;
-        //     
-        // }
+        switch (name) {
+            
+            case CLType.Option:
+                AssertOption(namedArg, types, values);
+                break;
+            
+            case CLType.List:
+                AssertList(namedArg, types, values);
+                break;
+            
+            case CLType.Map:
+                AssertMap(namedArg, types, values);
+                break;
+            
+            case CLType.Tuple1:
+                AssertTupleOne(namedArg, types, values);
+                break;
+            
+            case CLType.Tuple2:
+                AssertTupleTwo(namedArg, types, values);
+                break;
+            
+            case CLType.Tuple3:
+                AssertTupleThree(namedArg, types, values);
+                break;
+            
+        }
 
     }
    
@@ -299,6 +297,9 @@ public partial class CLValuesDefinitions {
         } else {
             clValues = (List<NamedArg>)_contextMap["clValues"];
         }
+
+        var named = new NamedArg(type.ToString(), value);
+        
 
         clValues.Add(new NamedArg(type.ToString() , value));
 
