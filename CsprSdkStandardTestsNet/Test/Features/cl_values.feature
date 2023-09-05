@@ -52,7 +52,7 @@ Feature: CL Values
     And the deploys NamedArgument "I64" has a value of "9999999" and bytes of "7f96980000000000"
     And the deploys NamedArgument "Bool" has a value of "true" and bytes of "01"
     And the deploys NamedArgument "ByteArray" has a value of "01ec7ff7b401fd62efa877b0a88295928fc1ecd93fd3cc6d58373dd38f098724be" and bytes of "01ec7ff7b401fd62efa877b0a88295928fc1ecd93fd3cc6d58373dd38f098724be"
-#    And the deploys NamedArgument "Key" has a value of "016ff3127d815871618b6f639cf4a4a2df4edeacb8a0df662822707a5e570c9d32" and bytes of "016ff3127d815871618b6f639cf4a4a2df4edeacb8a0df662822707a5e570c9d32"
+    And the deploys NamedArgument "Key" has a value of "016ff3127d815871618b6f639cf4a4a2df4edeacb8a0df662822707a5e570c9d32" and bytes of "016ff3127d815871618b6f639cf4a4a2df4edeacb8a0df662822707a5e570c9d32"
     And the deploys NamedArgument "PublicKey" has a value of "01ee5c4b8fed1d3b9ad0c4e491d3d5fe2b4a9d9cf04c6fc429c2da4e619a449919" and bytes of "01ee5c4b8fed1d3b9ad0c4e491d3d5fe2b4a9d9cf04c6fc429c2da4e619a449919"
     And the deploys NamedArgument "URef" has a value of "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a" and bytes of "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a07"
     And the deploys NamedArgument Complex value "Option" has internal types of "Bool" and values of "true" and bytes of "0101"

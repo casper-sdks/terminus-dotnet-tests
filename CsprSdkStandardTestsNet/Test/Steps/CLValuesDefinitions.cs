@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Casper.Network.SDK;
@@ -16,6 +15,9 @@ using static System.Console;
 
 namespace CsprSdkStandardTestsNet.Test.Steps;
 
+/**
+ * CLTypes step definitions
+ */
 [Binding]
 public partial class CLValuesDefinitions {
     
@@ -30,9 +32,9 @@ public partial class CLValuesDefinitions {
     public void GivenThatAclValueOfTypeHasAValueOf(CLType typeName, string strValue) {
         WriteLine("that a CL value of type {0} has a value of {1}", typeName, strValue);
 
-        _contextMap["clValue"] = _cLValueFactory.CreateValue(typeName, strValue);;
+        _contextMap["clValue"] = CLValueFactory.CreateValue(typeName, strValue);;
 
-        AddValueToContext(typeName, _cLValueFactory.CreateValue(typeName, strValue));
+        AddValueToContext(typeName, CLValueFactory.CreateValue(typeName, strValue));
     }
 
     [Then(@"it's bytes will be ""(.*)""")]
@@ -52,7 +54,7 @@ public partial class CLValuesDefinitions {
         var types = GetInnerClTypeData(innerTypes);
         var values = new List<string>(innerValues.Split(","));
         
-        var complexValue = _cLValueFactory.CreateComplexValue(type, types, values);
+        var complexValue = CLValueFactory.CreateComplexValue(type, types, values);
 
         AddValueToContext(type, complexValue);
 
@@ -148,7 +150,9 @@ public partial class CLValuesDefinitions {
             case CLType.Tuple3:
                 AssertTupleThree(namedArg, types, values);
                 break;
-            
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(name), name, "Unknown CLType");
         }
 
     }
@@ -166,10 +170,7 @@ public partial class CLValuesDefinitions {
         Assert.IsNotNull(deployResult.Parse().DeployHash);
 
         _contextMap["deployResult"] = deployResult;
-        
-        WriteLine(deployResult.Parse().DeployHash);
 
-        
     }
 
     [Then(@"the deploy has successfully executed")]

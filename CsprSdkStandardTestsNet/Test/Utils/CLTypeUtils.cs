@@ -5,6 +5,9 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace CsprSdkStandardTestsNet.Test.Utils; 
 
+/**
+ * CLType conversions
+ */
 public class CLTypeUtils {
     public static object ConvertToClTypeValue(CLType typeName, string value) {
         try {
@@ -33,7 +36,7 @@ public class CLTypeUtils {
                     return Hex.Decode(value);
 
                 case CLType.Key:
-                    return "account-hash-" + value;
+                    return "hash-" + value;
                 
                 case CLType.PublicKey:
                     return value;

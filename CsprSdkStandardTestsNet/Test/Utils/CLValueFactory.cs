@@ -6,10 +6,12 @@ using Casper.Network.SDK.Types;
 
 namespace CsprSdkStandardTestsNet.Test.Utils;
 
-
+/**
+ *  Converts complex and simple values to their required types 
+ */
 public class CLValueFactory {
 
-    public CLValue CreateValue(CLType clTypeData, string strValue) {
+    public static CLValue CreateValue(CLType clTypeData, string strValue) {
 
         switch (clTypeData) {
             case CLType.String:
@@ -45,7 +47,8 @@ public class CLValueFactory {
                 return CLValue.ByteArray(bytes);
 
             case CLType.Key:
-                return CLValue.Key(GlobalStateKey.FromString("account-hash-" + strValue));
+
+                return CLValue.Key(new HashKey("hash-" + strValue));
 
             case CLType.PublicKey:
                 return CLValue.PublicKey(PublicKey.FromHexString(strValue));
@@ -60,7 +63,7 @@ public class CLValueFactory {
 
     }
 
-    public CLValue CreateComplexValue(CLType clTypeData, List<CLType> innerTypes, List<string> innerStrValues) {
+    public static CLValue CreateComplexValue(CLType clTypeData, List<CLType> innerTypes, List<string> innerStrValues) {
         
         var innerValues = new List<CLValue>();
 
