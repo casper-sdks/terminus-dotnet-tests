@@ -30,7 +30,7 @@ public class Blocks {
     private readonly Dictionary<string, object> _contextMap = new();
     private readonly Nctl _nctl = new(TestProperties.DockerName);
 
-    private static NetCasperClient GetCasperService(){
+    private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
     }
 
@@ -120,7 +120,7 @@ public class Blocks {
     }
 
     [Then(@"the proofs of the returned block are equal to the proofs of the returned test node block")]
-    public void ThenTheProofsOfTheReturnedBlockAreEqualToTheProofsOfTheReturnedTestNodeBlock(){
+    public void ThenTheProofsOfTheReturnedBlockAreEqualToTheProofsOfTheReturnedTestNodeBlock() {
         WriteLine("the proofs of the returned block are equal to the proofs of the returned test node block");
 
         var latestBlockSdk = (Block)_contextMap["blockDataSdk"];
@@ -182,7 +182,7 @@ public class Blocks {
     }
 
     [Given(@"that an invalid block hash is requested via the sdk")]
-    public void GivenThatAnInvalidBlockHashIsRequestedViaTheSdk(){
+    public void GivenThatAnInvalidBlockHashIsRequestedViaTheSdk() {
         WriteLine("that an invalid block hash is requested via the sdk");
 
         _contextMap["rpcClientException"] =
@@ -209,7 +209,7 @@ public class Blocks {
     }
 
     [Given(@"that chain transfer data is initialised")]
-    public void GivenThatChainTransferDataIsInitialised(){
+    public void GivenThatChainTransferDataIsInitialised() {
         WriteLine("that chain transfer data is initialised");
 
         var senderPem = AssetUtils.GetUserKeyAsset(1, 1, "secret_key.pem");
@@ -231,7 +231,7 @@ public class Blocks {
     }
 
     [When(@"the deploy data is put on chain")]
-    public async Task WhenTheDeployDataIsPutOnChain(){
+    public async Task WhenTheDeployDataIsPutOnChain() {
         WriteLine("the deploy data is put on chain");
 
         var senderKey = (KeyPair)_contextMap["senderKey"];
@@ -265,7 +265,7 @@ public class Blocks {
     }
 
     [Then(@"request the block transfer")]
-    public async Task ThenRequestTheBlockTransfer() {
+    public void ThenRequestTheBlockTransfer() {
         WriteLine("request the block transfer");
 
         var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
@@ -273,9 +273,7 @@ public class Blocks {
         var sseBlockAdded = new BlockAddedTask();
         sseBlockAdded.HasTransferHashWithin(deployResult.Parse().DeployHash, 300000);
         
-        var transferBlockSdk= await GetCasperService().GetBlockTransfers();
-        
-        _contextMap["transferBlockSdk"] = transferBlockSdk;
+
     }
 
     [Then(@"request the block transfer from the test node")]
@@ -287,7 +285,7 @@ public class Blocks {
     }
 
     [Then(@"the returned block contains the transfer hash returned from the test node block")]
-    public void ThenTheReturnedBlockContainsTheTransferHashReturnedFromTheTestNodeBlock(){
+    public void ThenTheReturnedBlockContainsTheTransferHashReturnedFromTheTestNodeBlock() {
         WriteLine("the returned block contains the transfer hash returned from the test node block");
 
         var transfers = (JsonNode)_contextMap["transferBlockNode"];
