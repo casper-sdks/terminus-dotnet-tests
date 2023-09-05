@@ -77,7 +77,7 @@ public partial class CLValuesDefinitions {
 
         var senderKey = KeyPair.FromPem(AssetUtils.GetUserKeyAsset(1, 1, "secret_key.pem"));
        
-        var header = new DeployHeader{
+        var header = new DeployHeader {
             Account = senderKey.PublicKey,
             Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
             Ttl = 1800000,
@@ -179,10 +179,11 @@ public partial class CLValuesDefinitions {
         
         var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
 
-        RpcResponse<GetDeployResult> deploy = await GetCasperService().GetDeploy(deployResult.Parse().DeployHash, true,
+        RpcResponse<GetDeployResult> deploy = await GetCasperService().GetDeploy(
+            deployResult.Parse().DeployHash, 
+            true,
             new CancellationTokenSource(TimeSpan.FromSeconds(300)).Token);
        
-        
         Assert.That(deploy!.Parse().ExecutionResults[0].IsSuccess);
         
     }

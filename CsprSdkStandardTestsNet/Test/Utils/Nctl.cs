@@ -31,7 +31,7 @@ public class Nctl {
 
     private T Execute<T> (string shellCommand, string parameters, Func<string, T> func) {
         
-        ProcessStartInfo startInfo = new(){
+        ProcessStartInfo startInfo = new() {
             FileName = "docker",
             Arguments =
                 $"exec -t {_dockerName}  /bin/bash -c \"source casper-node/utils/nctl/sh/views/{shellCommand} {parameters ?? ""}\"",
