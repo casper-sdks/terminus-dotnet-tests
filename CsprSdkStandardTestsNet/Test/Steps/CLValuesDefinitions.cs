@@ -121,7 +121,7 @@ public partial class CLValuesDefinitions {
         
         Assert.That(namedArg, Is.Not.Null);
 
-        Assert.That(namedArg.Value.Bytes, Is.EqualTo(GetHexValue(bytes)));
+        Assert.That(GetHexValue(namedArg.Value), Is.EqualTo(bytes.ToUpper()));
 
         switch (name) {
             
@@ -297,9 +297,6 @@ public partial class CLValuesDefinitions {
         } else {
             clValues = (List<NamedArg>)_contextMap["clValues"];
         }
-
-        var named = new NamedArg(type.ToString(), value);
-        
 
         clValues.Add(new NamedArg(type.ToString() , value));
 
