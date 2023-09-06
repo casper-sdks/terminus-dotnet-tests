@@ -13,6 +13,10 @@ using static System.Console;
 
 namespace CsprSdkStandardTestsNet.Test.Steps;
 
+/**
+ * Steps to test deploys
+ */
+
 [Binding]
 public class Deploys {
     
@@ -35,8 +39,8 @@ public class Deploys {
         var senderKey = KeyPair.FromPem(senderPem);
 
         Assert.IsNotNull(senderKey);
+        
         var receiverPem = AssetUtils.GetUserKeyAsset(1, 2, "public_key.pem");
-
         var receiverKey = PublicKey.FromPem(receiverPem);
 
         Assert.IsNotNull(receiverKey);
