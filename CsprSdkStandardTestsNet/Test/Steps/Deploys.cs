@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using System.Threading.Tasks;
 using Casper.Network.SDK;
@@ -82,13 +83,12 @@ public class Deploys {
             chainName,
             null,
             _contextMap.Get<ulong>(StepConstants.GAS_PRICE),
-            _contextMap.Get<ulong>(StepConstants.TTL));
+            (ulong)TimeSpan.FromMinutes(_contextMap.Get<ulong>(StepConstants.TTL)).TotalMilliseconds);
+        
     
         deploy.Sign(senderKey);
         
         var putResponse = await GetCasperService().PutDeploy(deploy);
-        
-        WriteLine(putResponse);
         
         _contextMap.Add(StepConstants.DEPLOY_RESULT, putResponse);
         
