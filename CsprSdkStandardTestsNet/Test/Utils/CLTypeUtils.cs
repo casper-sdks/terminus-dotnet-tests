@@ -36,7 +36,7 @@ public class CLTypeUtils {
                     return Hex.Decode(value);
 
                 case CLType.Key:
-                    return "hash-" + value;
+                    return "hash-" + value[2..];
                 
                 case CLType.PublicKey:
                     return value;
