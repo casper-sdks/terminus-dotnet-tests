@@ -19,7 +19,7 @@ public class BlockAddedTask {
     public void HasTransferHashWithin(string blockHash, int timeout) {
         
         var cts = new CancellationTokenSource();
-        cts.CancelAfter(timeout);
+        cts.CancelAfter(TimeSpan.FromSeconds(timeout));
         
         Listen(blockHash, cts.Token);
 

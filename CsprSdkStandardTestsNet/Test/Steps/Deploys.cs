@@ -74,22 +74,15 @@ public class Deploys {
 
         var senderKey = _contextMap.Get<KeyPair>(StepConstants.SENDER_KEY);
         
-        // var deploy = DeployTemplates.StandardTransfer(
-        //     senderKey.PublicKey,
-        //     (PublicKey)_contextMap["receiverKey"],
-        //     (BigInteger)_contextMap["transferAmount"],
-        //     100_000_000,
-        //     chainName,
-        //     null,
-        //     (ulong)_contextMap["gasPrice"],
-        //     (ulong)_contextMap["ttl"]);
-        //
         var deploy = DeployTemplates.StandardTransfer(
             senderKey.PublicKey,
             _contextMap.Get<PublicKey>(StepConstants.RECEIVER_KEY),
-            (BigInteger)_contextMap.Get<BigInteger>(StepConstants.TRANSFER_AMOUNT),
+            _contextMap.Get<BigInteger>(StepConstants.TRANSFER_AMOUNT),
             100_000_000,
-            chainName);
+            chainName,
+            null,
+            _contextMap.Get<ulong>(StepConstants.GAS_PRICE),
+            _contextMap.Get<ulong>(StepConstants.TTL));
     
         deploy.Sign(senderKey);
         

@@ -271,7 +271,7 @@ public class Blocks {
         var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
         
         var sseBlockAdded = new BlockAddedTask();
-        sseBlockAdded.HasTransferHashWithin(deployResult.Parse().DeployHash, 300000);
+        sseBlockAdded.HasTransferHashWithin(deployResult.Parse().DeployHash, 300);
         
     }
 
