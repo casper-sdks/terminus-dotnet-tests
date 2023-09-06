@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 using Casper.Network.SDK;
@@ -16,10 +15,14 @@ namespace CsprSdkStandardTestsNet.Test.Steps;
 [Binding]
 public class Deploys {
     
-    private readonly Dictionary<string, object> _contextMap = new();
-    
+    private readonly ContextMap _contextMap = ContextMap.Instance;    
     private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
+    }
+    
+    [BeforeScenario()]
+    private void SetUp() {
+        _contextMap.Clear();
     }
     
     
@@ -37,61 +40,64 @@ public class Deploys {
 
         Assert.IsNotNull(receiverKey);
 
-        _contextMap["senderKey"] = senderKey;
-        _contextMap["receiverKey"] = receiverKey;
-        
+        _contextMap.Add(StepConstants.SENDER_KEY, senderKey);
+        _contextMap.Add(StepConstants.RECEIVER_KEY, receiverKey);
+
     }
 
     [Given(@"the transfer amount is (.*)")]
     public void GivenTheTransferAmountIs(long amount) {
         WriteLine("the transfer amount is {0}", amount);
         
-        _contextMap["transferAmount"] = new BigInteger(amount);
+        _contextMap.Add(StepConstants.TRANSFER_AMOUNT, new BigInteger(amount));
     }
 
     [Given(@"the transfer gas price is (.*)")]
     public void GivenTheTransferGasPriceIs(long price) {
         WriteLine("the transfer gas price is {0}", price);
 
-        _contextMap["gasPrice"] = (ulong)price;
+        _contextMap.Add(StepConstants.GAS_PRICE, (ulong)price);
 
     }
 
     [Given(@"the deploy is given a ttl of (.*)m")]
     public void GivenTheDeployIsGivenATtlOfM(int ttlMinutes) {
         WriteLine("the deploy is given a ttl of {0}", ttlMinutes);  
-        
-        _contextMap["ttl"] = (ulong)ttlMinutes;
-     
+
+        _contextMap.Add(StepConstants.TTL, (ulong)ttlMinutes);
+   
     }
 
     [When(@"the deploy is put on chain ""(.*)""")]
     public async Task WhenTheDeployIsPutOnChain(string chainName) {
         WriteLine("the deploy is put on chain {0}", chainName);  
 
-        var senderKey = (KeyPair)_contextMap["senderKey"];
+        var senderKey = _contextMap.Get<KeyPair>(StepConstants.SENDER_KEY);
         
+        // var deploy = DeployTemplates.StandardTransfer(
+        //     senderKey.PublicKey,
+        //     (PublicKey)_contextMap["receiverKey"],
+        //     (BigInteger)_contextMap["transferAmount"],
+        //     100_000_000,
+        //     chainName,
+        //     null,
+        //     (ulong)_contextMap["gasPrice"],
+        //     (ulong)_contextMap["ttl"]);
+        //
         var deploy = DeployTemplates.StandardTransfer(
             senderKey.PublicKey,
-            (PublicKey)_contextMap["receiverKey"],
-            (BigInteger)_contextMap["transferAmount"],
+            _contextMap.Get<PublicKey>(StepConstants.RECEIVER_KEY),
+            (BigInteger)_contextMap.Get<BigInteger>(StepConstants.TRANSFER_AMOUNT),
             100_000_000,
-            chainName,
-            null,
-            (ulong)_contextMap["gasPrice"],
-            (ulong)_contextMap["ttl"]);
-        
-        _contextMap["putDeploy"] = deploy;
-        
-        WriteLine(deploy);
-   
+            chainName);
+    
         deploy.Sign(senderKey);
         
         var putResponse = await GetCasperService().PutDeploy(deploy);
         
         WriteLine(putResponse);
         
-        _contextMap["deployResult"] = putResponse;
+        _contextMap.Add(StepConstants.DEPLOY_RESULT, putResponse);
         
     }
 
@@ -99,7 +105,7 @@ public class Deploys {
     public void ThenWaitForABlockAddedEventWithATimeoutOfSeconds(int timeout) {
         WriteLine("wait for a block added event with a timeout of {0} seconds", timeout);
         
-        var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
+        var deployResult = _contextMap.Get<RpcResponse<PutDeployResult>>(StepConstants.DEPLOY_RESULT);
         
         var sseBlockAdded = new BlockAddedTask();
         sseBlockAdded.HasTransferHashWithin(deployResult.Parse().DeployHash, timeout);
