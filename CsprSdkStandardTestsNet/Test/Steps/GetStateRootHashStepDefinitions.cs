@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Casper.Network.SDK;
 using CsprSdkStandardTestsNet.Test.Utils;
@@ -6,21 +5,28 @@ using NUnit.Framework;
 using TechTalk.SpecFlow;
 using static System.Console;
 
+
 namespace CsprSdkStandardTestsNet.Test.Steps;
 
 /**
  * Step definitions for get_state_root_hash
  */
-
 [Binding]
 public class GetStateRootHashStepDefinitions {
     
     private static readonly TestProperties TestProperties = new();
-    private readonly Dictionary<string, object> _contextMap = new();
+    
+    private readonly ContextMap _contextMap = ContextMap.Instance;
+    
     private readonly Nctl _nctl = new(TestProperties.DockerName);
 
     private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
+    }
+
+    [BeforeScenario()]
+    private void SetUp() {
+        _contextMap.Clear();
     }
     
     [Given(@"that the chain_get_state_root_hash RCP method is invoked against nctl")]
@@ -29,7 +35,7 @@ public class GetStateRootHashStepDefinitions {
 
         var rpcResponse = await GetCasperService().GetStateRootHash();
         
-        _contextMap["STATE_ROOT_HASH"] = rpcResponse;
+        _contextMap.Add(StepConstants.STATE_ROOT_HASH ,rpcResponse);
         
     }
 
@@ -37,7 +43,7 @@ public class GetStateRootHashStepDefinitions {
     public void ThenAValidChainGetStateRootHashResultIsReturned() {
         WriteLine("a valid chain_get_state_root_hash_result is returned");
 
-        var stateRootHash = _contextMap["STATE_ROOT_HASH"];
+        var stateRootHash = _contextMap.Get<string>(StepConstants.STATE_ROOT_HASH);
         
         Assert.That(stateRootHash, Is.Not.Null);
 

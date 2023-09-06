@@ -20,9 +20,14 @@ namespace CsprSdkStandardTestsNet.Test.Steps;
  */
 [Binding]
 public partial class CLValuesDefinitions {
+   
+   
+    private readonly ContextMap _contextMap = ContextMap.Instance;
     
-    private readonly CLValueFactory _cLValueFactory = new();
-    private readonly Dictionary<string, object> _contextMap = new();
+    [BeforeScenario()]
+    private void SetUp() {
+        _contextMap.Clear();
+    }
     
     private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
@@ -32,7 +37,7 @@ public partial class CLValuesDefinitions {
     public void GivenThatAclValueOfTypeHasAValueOf(CLType typeName, string strValue) {
         WriteLine("that a CL value of type {0} has a value of {1}", typeName, strValue);
 
-        _contextMap["clValue"] = CLValueFactory.CreateValue(typeName, strValue);;
+        _contextMap.Add(StepConstants.CLVALUE, CLValueFactory.CreateValue(typeName, strValue)); 
 
         AddValueToContext(typeName, CLValueFactory.CreateValue(typeName, strValue));
     }
@@ -41,10 +46,11 @@ public partial class CLValuesDefinitions {
     public void ThenItsBytesWillBe(string hexBytes) {
         WriteLine("it's bytes will be {0}", hexBytes);
         
-        CLValue clValue = (CLValue)_contextMap["clValue"];
-
-        Assert.That(clValue.TypeInfo.Type.Equals(CLType.Key) ? hexBytes[2..].ToUpper() : hexBytes.ToUpper(),
-            Is.EqualTo(GetHexValue(clValue)));
+        var clValue =_contextMap.Get<CLValue>(StepConstants.CLVALUE);
+        
+        Assert.That(clValue.TypeInfo.Type.Equals(CLType.Key) 
+                ? hexBytes[2..].ToUpper() : hexBytes.ToUpper(),
+                Is.EqualTo(GetHexValue(clValue)));
     }
 
     [Given(@"that the CL complex value of type ""(.*)"" with an internal types of ""(.*)"" values of ""(.*)""")]
@@ -70,7 +76,7 @@ public partial class CLValuesDefinitions {
               new ("id", CLValue.Option(CLValue.U64((ulong)BigInteger.Parse("200")))) 
         };
 
-        var clValues = (List<NamedArg>)_contextMap["clValues"];
+        var clValues = _contextMap.Get<List<NamedArg>>(StepConstants.CLVALUES);
         runtimeArgs.AddRange(clValues);
 
         var session = new TransferDeploy(runtimeArgs);
@@ -90,7 +96,7 @@ public partial class CLValuesDefinitions {
         
         deploy.Sign(senderKey);
 
-        _contextMap["deploy"] = deploy;
+        _contextMap.Add(StepConstants.PUT_DEPLOY, deploy);
 
     }
    
@@ -99,7 +105,7 @@ public partial class CLValuesDefinitions {
     public void ThenTheDeploysNamedArgumentHasAValueOfAndBytesOf(CLType name, string strValue, string hexBytes) {
         WriteLine("the deploys NamedArgument {0} has a value of {1} and bytes of {2}", name, strValue, hexBytes);
         
-        var deploy = (RpcResponse<GetDeployResult>)_contextMap["getDeploy"];
+        var deploy = _contextMap.Get<RpcResponse<GetDeployResult>>(StepConstants.GET_DEPLOY);
 
         var namedArg = deploy.Parse().Deploy.Session.RuntimeArgs.Find(n => n.Name.Equals(name.ToString()));
         
@@ -108,8 +114,9 @@ public partial class CLValuesDefinitions {
         var value = CLTypeUtils.ConvertToClTypeValue(name, strValue);
         
         Assert.That(namedArg.Value.ToString()!.ToUpper(), Is.EqualTo(value.ToString()!.ToUpper()));
-        
-        Assert.That(namedArg.Value.TypeInfo.Type.Equals(CLType.Key) ? hexBytes[2..].ToUpper() : hexBytes.ToUpper(),
+
+        Assert.That(namedArg.Value.TypeInfo.Type.Equals(CLType.Key) 
+                ? hexBytes[2..].ToUpper() : hexBytes.ToUpper(),
             Is.EqualTo(GetHexValue(namedArg.Value)));
         
         Assert.That(namedArg.Value.TypeInfo.Type, Is.EqualTo(name));
@@ -120,9 +127,9 @@ public partial class CLValuesDefinitions {
     public void ThenTheDeploysNamedArgumentComplexValueHasInternalTypesOfAndValuesOfAndBytesOf(CLType name, string types, string values, string bytes) {
         WriteLine("the deploys NamedArgument Complex value {0} has internal types of {1} and values of {2} and bytes of {3}");
         
-        var deploy = (RpcResponse<GetDeployResult>)_contextMap["getDeploy"];
+        var deploy = _contextMap.Get<Deploy>(StepConstants.GET_DEPLOY);
         
-        var namedArg = deploy.Parse().Deploy.Session.RuntimeArgs.Find(n => n.Name.Equals(name.ToString()));
+        var namedArg = deploy.Session.RuntimeArgs.Find(n => n.Name.Equals(name.ToString()));
         
         Assert.That(namedArg, Is.Not.Null);
 
@@ -165,14 +172,14 @@ public partial class CLValuesDefinitions {
     public async Task WhenTheDeployIsPutOnChain() {
         WriteLine("the deploy is put on chain");
 
-        var deploy = (Deploy)_contextMap["deploy"];
+        var deploy = _contextMap.Get<Deploy>(StepConstants.PUT_DEPLOY);
         
         var deployResult = await GetCasperService().PutDeploy(deploy);
         
         Assert.IsNotNull(deployResult);
         Assert.IsNotNull(deployResult.Parse().DeployHash);
 
-        _contextMap["deployResult"] = deployResult;
+        _contextMap.Add(StepConstants.DEPLOY_RESULT, deployResult);
 
     }
 
@@ -180,7 +187,7 @@ public partial class CLValuesDefinitions {
     public async Task ThenTheDeployHasSuccessfullyExecuted() {
         WriteLine("the deploy has successfully executed");
         
-        var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
+        var deployResult = _contextMap.Get<RpcResponse<PutDeployResult>>(StepConstants.DEPLOY_RESULT);
 
         RpcResponse<GetDeployResult> deploy = await GetCasperService().GetDeploy(
             deployResult.Parse().DeployHash, 
@@ -195,11 +202,11 @@ public partial class CLValuesDefinitions {
     public async Task WhenTheDeployIsObtainedFromTheNode() {
         WriteLine("the deploy is obtained from the node");
         
-        var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
+        var deployResult = _contextMap.Get<RpcResponse<PutDeployResult>>(StepConstants.DEPLOY_RESULT);
         var deploy = await GetCasperService().GetDeploy(deployResult.Parse().DeployHash, true);
         
         Assert.That(deploy, Is.Not.Null);
-        _contextMap["getDeploy"] = deploy;
+        _contextMap.Add(StepConstants.GET_DEPLOY, deploy);
         
     }
 
@@ -207,7 +214,7 @@ public partial class CLValuesDefinitions {
     public void ThenTheDeployResponseContainsAValidDeployHashOfLengthAndAnApiVersion(int hashLength, string apiVersion) {
         WriteLine("the deploy response contains a valid deploy hash of length {0} and an API version {1}", hashLength, apiVersion);
         
-        var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
+        var deployResult = _contextMap.Get<RpcResponse<PutDeployResult>>(StepConstants.DEPLOY_RESULT);
 
         Assert.That(deployResult.Parse(), Is.Not.Null);
         Assert.That(deployResult.Parse().DeployHash, Is.Not.Null);
@@ -277,15 +284,15 @@ public partial class CLValuesDefinitions {
     
     private void AddValueToContext(CLType type, CLValue value) {
 
-        _contextMap["clValue"] = value;
+        _contextMap.Add(StepConstants.CLVALUE, value);
 
         List<NamedArg> clValues;
         
-        if (!_contextMap.ContainsKey("clValues")) {
+        if (!_contextMap.HasKey("clValues")) {
              clValues = new List<NamedArg>();
-            _contextMap["clValues"] = clValues;
+            _contextMap.Add(StepConstants.CLVALUES, clValues);
         } else {
-            clValues = (List<NamedArg>)_contextMap["clValues"];
+            clValues = _contextMap.Get<List<NamedArg>>(StepConstants.CLVALUES);
         }
 
         clValues.Add(new NamedArg(type.ToString() , value));
