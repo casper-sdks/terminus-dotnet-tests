@@ -42,9 +42,9 @@ public partial class CLValuesDefinitions {
         WriteLine("it's bytes will be {0}", hexBytes);
         
         CLValue clValue = (CLValue)_contextMap["clValue"];
-        
-        Assert.That(hexBytes.ToUpper(), Is.EqualTo(GetHexValue(clValue)));    
 
+        Assert.That(clValue.TypeInfo.Type.Equals(CLType.Key) ? hexBytes[2..].ToUpper() : hexBytes.ToUpper(),
+            Is.EqualTo(GetHexValue(clValue)));
     }
 
     [Given(@"that the CL complex value of type ""(.*)"" with an internal types of ""(.*)"" values of ""(.*)""")]
@@ -108,7 +108,10 @@ public partial class CLValuesDefinitions {
         var value = CLTypeUtils.ConvertToClTypeValue(name, strValue);
         
         Assert.That(namedArg.Value.ToString()!.ToUpper(), Is.EqualTo(value.ToString()!.ToUpper()));
-        Assert.That(GetHexValue(namedArg.Value), Is.EqualTo(hexBytes.ToUpper()));
+        
+        Assert.That(namedArg.Value.TypeInfo.Type.Equals(CLType.Key) ? hexBytes[2..].ToUpper() : hexBytes.ToUpper(),
+            Is.EqualTo(GetHexValue(namedArg.Value)));
+        
         Assert.That(namedArg.Value.TypeInfo.Type, Is.EqualTo(name));
         
     }

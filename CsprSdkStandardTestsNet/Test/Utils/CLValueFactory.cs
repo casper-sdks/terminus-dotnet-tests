@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Casper.Network.SDK.Types;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace CsprSdkStandardTestsNet.Test.Utils;
 
@@ -47,8 +48,7 @@ public class CLValueFactory {
                 return CLValue.ByteArray(bytes);
 
             case CLType.Key:
-
-                return CLValue.Key(new HashKey("hash-" + strValue));
+                return CLValue.Key(GlobalStateKey.FromBytes(Hex.Decode(strValue)));
 
             case CLType.PublicKey:
                 return CLValue.PublicKey(PublicKey.FromHexString(strValue));
