@@ -127,9 +127,9 @@ public partial class CLValuesDefinitions {
     public void ThenTheDeploysNamedArgumentComplexValueHasInternalTypesOfAndValuesOfAndBytesOf(CLType name, string types, string values, string bytes) {
         WriteLine("the deploys NamedArgument Complex value {0} has internal types of {1} and values of {2} and bytes of {3}");
         
-        var deploy = _contextMap.Get<Deploy>(StepConstants.GET_DEPLOY);
+        var deploy = _contextMap.Get<RpcResponse<GetDeployResult>>(StepConstants.GET_DEPLOY);
         
-        var namedArg = deploy.Session.RuntimeArgs.Find(n => n.Name.Equals(name.ToString()));
+        var namedArg = deploy.Parse().Deploy.Session.RuntimeArgs.Find(n => n.Name.Equals(name.ToString()));
         
         Assert.That(namedArg, Is.Not.Null);
 
@@ -245,7 +245,12 @@ public partial class CLValuesDefinitions {
     }
     
     private void AssertOption(NamedArg arg, string types, string values) {
-        throw new NotImplementedException();
+        
+        if (arg.Value.IsSome()){
+            arg.Value.Some(out var v);
+            Assert.That(v, Is.EqualTo(bool.Parse(values)));
+        } else
+            Assert.Fail();
     }
 
     private void AssertClValues(CLValue actual, CLValue expected, CLType type) {
