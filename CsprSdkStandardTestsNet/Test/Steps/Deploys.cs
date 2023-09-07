@@ -156,11 +156,11 @@ public class Deploys {
     public void ThenTheDeployHasAPaymentAmountOf(int amount) {
         WriteLine("the deploy has a payment amount of {0}", amount);
         
-        var amountArg = getDeployData().Parse().Deploy.Session.RuntimeArgs.Find(n => n.Name.Equals(StepConstants.AMOUNT));
+        var amountArg = getDeployData().Parse().Deploy.Payment.RuntimeArgs.Find(n => n.Name.Equals(StepConstants.AMOUNT));
         
         Assert.That(amountArg, Is.Not.Null);
         Assert.That(amountArg.Value.TypeInfo.Type, Is.EqualTo(CLType.U512));
-        Assert.That(amountArg.Value, Is.EqualTo(amount));
+        Assert.That(int.Parse(amountArg.Value.Parsed.ToString()!), Is.EqualTo(amount));
 
     }
 
