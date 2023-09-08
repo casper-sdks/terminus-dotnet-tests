@@ -27,11 +27,9 @@ public class Deploys {
         return CasperClientProvider.GetInstance().CasperService;
     }
    
-    
     [Given(@"that user-(.*) initiates a transfer to user-(.*)")]
     public void GivenThatUserInitiatesATransferToUser(int senderId, int receiverId) {
         WriteLine("that user-{0} initiates a transfer to user-{1}", senderId, receiverId);
-        
         var senderPem = AssetUtils.GetUserKeyAsset(1, 1, "secret_key.pem");
         var senderKey = KeyPair.FromPem(senderPem);
 
@@ -179,9 +177,17 @@ public class Deploys {
     public void ThenTheDeployHasAValidTimestamp() {
         WriteLine("the deploy has a valid timestamp");
         
-        var timestamp = _contextMap.Get<ulong>(StepConstants.DEPLOY_TIMESTAMP);
-        Assert.That(GetDeployData().Parse().Deploy.Header.Timestamp, Is.EqualTo(timestamp));
-        
+        //There's no way to pass the timestamp to a deploy
+        //The best we can do is check that it's greater than a recorded time
+        //And do some ISO conversion to validate it's a date
+        var timestampExpected = _contextMap.Get<ulong>(StepConstants.DEPLOY_TIMESTAMP);
+        var timestampActual = GetDeployData().Parse().Deploy.Header.Timestamp;
+
+        Assert.That(timestampExpected, Is.LessThan(timestampActual));
+
+        var timestampActualDate = DateTime.Parse(DateUtils.ToISOString(timestampActual)).Date;
+        Assert.That(timestampActualDate, Is.Not.Null);
+
     }
 
     [Then(@"the deploy has a valid body hash")]
@@ -244,7 +250,10 @@ public class Deploys {
         var namedArg = session.RuntimeArgs.Find(n => n.Name.Equals(arg));
 
         Assert.That(namedArg, Is.Not.Null);
-        Assert.That(namedArg.Value.TypeInfo.ToString(), Is.EqualTo(type));
+        
+        // Fails if the type is PublicKey
+        // This fails because the receiver public key is stored as an Account Hash which is then stored as CLType ByteArray
+        Assert.That(namedArg.Value.TypeInfo.Type.ToString(), Is.EqualTo(type));
 
     }
 
@@ -277,24 +286,17 @@ public class Deploys {
         var userKeyAsset = AssetUtils.GetUserKeyAsset(1, user, StepConstants.PUBLIC_KEY_PEM);
 
         var publicKey = PublicKey.FromPem(userKeyAsset);
+
+        //Have to convert the PublicKey to an Account Hash
+        var accountHash = publicKey.GetAccountHash();
         
-        Assert.That(namedArg.Value.Parsed, Is.EqualTo(publicKey));
-        
-        // final ExecutableDeployItem session = getDeployData().getDeploy().getSession();
-        //
-        // final Ed25519PublicKey publicKey = new Ed25519PublicKey();
-        // publicKey.readPublicKey(AssetUtils.getUserKeyAsset(1, userId, PUBLIC_KEY_PEM).getFile());
-        //
-        // final NamedArg<?> namedArg = getNamedArg(session.getArgs(), argName);
-        // final CLValuePublicKey clValue = (CLValuePublicKey) namedArg.getClValue();
-        // assertThat(clValue.getValue(), is(PublicKey.fromAbstractPublicKey(publicKey)));
-        
-        
+        // This only works if we compare the Account Hash of the user's PublicKey
+        Assert.That(namedArg.Value.Parsed.ToString()?.ToUpper(), Is.EqualTo(accountHash[13..].ToUpper()));
+
     }
     
     private RpcResponse<GetDeployResult> GetDeployData() {
         return _contextMap.Get<RpcResponse<GetDeployResult>>(StepConstants.INFO_GET_DEPLOY);
     }
-    
-    
+
 }
