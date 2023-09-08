@@ -198,15 +198,13 @@ public class Deploys {
     public void ThenTheDeployHasASessionTypeOf(string sessionType) {
         WriteLine("the deploy has a session type of {0}", sessionType);
 
-        // var actualSessionType = getDeployData().Parse().Deploy.Session.GetType().IsClass;
-        //
-        // final String actualSessionType = getDeployData().getDeploy().getSession().getClass().getSimpleName().toLowerCase();
-        // final String expectedSessionType = sessionType.replace(" ", "").toLowerCase();
-        // assertThat(actualSessionType, is(expectedSessionType));
-        
+        var actualSessionType = GetDeployData().Parse().Deploy.Session.JsonPropertyName().ToLower();
+        var expectedSessionType = sessionType.Replace(" ", "").ToLower();
+        Assert.That(actualSessionType, Is.EqualTo(expectedSessionType));
+
     }
 
-    [Then(@"the deploy is approved by user(.*)")]
+    [Then(@"the deploy is approved by user-(.*)")]
     public void ThenTheDeployIsApprovedByUser(int user) {
         WriteLine("the deploy is approved by user-{0}", user);
 
@@ -215,20 +213,10 @@ public class Deploys {
         
         var userKeyAsset = AssetUtils.GetUserKeyAsset(1, user, StepConstants.PUBLIC_KEY_PEM);
 
-        var approvalKey = PublicKey.FromHexString(userKeyAsset);
+        var approvalKey = PublicKey.FromPem(userKeyAsset);
 
         Assert.That(approvals[0].Signer, Is.EqualTo(approvalKey));
         
-
-        // final List<Approval> approvals = getDeployData().getDeploy().getApprovals();
-        // assertThat(approvals, hasSize(1));
-        //
-        // final Ed25519PublicKey approvalKey = new Ed25519PublicKey();
-        // final URL userKeyAsset = AssetUtils.getUserKeyAsset(1, userId, PUBLIC_KEY_PEM);
-        // approvalKey.readPublicKey(userKeyAsset.getFile());
-        // PublicKey publicKey = PublicKey.fromAbstractPublicKey(approvalKey);
-        //
-        // assertThat(approvals.get(0).getSigner(), is(publicKey));
 
     }
 
@@ -244,7 +232,7 @@ public class Deploys {
     public void ThenTheDeployHasATtlOfM(int ttl) {
         WriteLine("the deploy has a ttl of {0}m", ttl);
         
-        Assert.That(GetDeployData().Parse().Deploy.Header.Ttl, Is.EqualTo(ttl));
+        Assert.That(GetDeployData().Parse().Deploy.Header.Ttl, Is.EqualTo(TimeSpan.FromMinutes(ttl).TotalMilliseconds));
 
     }
 
@@ -256,11 +244,7 @@ public class Deploys {
         var namedArg = session.RuntimeArgs.Find(n => n.Name.Equals(arg));
 
         Assert.That(namedArg, Is.Not.Null);
-        Assert.That(namedArg.Value.TypeInfo, Is.EqualTo(type));
-        
-        // final ExecutableDeployItem session = getDeployData().getDeploy().getSession();
-        // final NamedArg<?> namedArg = getNamedArg(session.getArgs(), argName);
-        // assertThat(namedArg.getClValue().getClass().getSimpleName(), is("CLValue" + argType));
+        Assert.That(namedArg.Value.TypeInfo.ToString(), Is.EqualTo(type));
 
     }
 
@@ -274,22 +258,14 @@ public class Deploys {
         Assert.That(namedArg, Is.Not.Null);
 
         if (namedArg.Value.TypeInfo.Type.Equals(CLType.U512)) {
-            Assert.That(namedArg.Value.Parsed, Is.EqualTo(BigInteger.Parse(value)));
+            Assert.That(namedArg.Value.Parsed, Is.EqualTo(value));
         } else {
             throw new ArgumentException(namedArg.Value.TypeInfo.Type + " not yet implemented");
         }
         
-        // final ExecutableDeployItem session = getDeployData().getDeploy().getSession();
-        // final NamedArg<?> namedArg = getNamedArg(session.getArgs(), argName);
-        // if (namedArg.getClValue().getClType() instanceof CLTypeU512) {
-        //     assertThat(namedArg.getClValue().getValue(), is(BigInteger.valueOf(value)));
-        // } else {
-        //     throw new IllegalArgumentException(namedArg.getClValue().getClType().getClass().getSimpleName() + " not yet implemented");
-        // }
-        
     }
 
-    [Then(@"the deploy session has a ""(.*)"" argument with the public key of user(.*)")]
+    [Then(@"the deploy session has a ""(.*)"" argument with the public key of user-(.*)")]
     public void ThenTheDeploySessionHasAArgumentWithThePublicKeyOfUser(string arg, int user) {
         WriteLine("the deploy session has a {0} argument with the public key of user-{1}", arg, user);
         
@@ -300,7 +276,7 @@ public class Deploys {
         
         var userKeyAsset = AssetUtils.GetUserKeyAsset(1, user, StepConstants.PUBLIC_KEY_PEM);
 
-        var publicKey = PublicKey.FromHexString(userKeyAsset);
+        var publicKey = PublicKey.FromPem(userKeyAsset);
         
         Assert.That(namedArg.Value.Parsed, Is.EqualTo(publicKey));
         
