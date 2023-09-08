@@ -6,6 +6,7 @@ using Casper.Network.SDK.JsonRpc;
 using Casper.Network.SDK.JsonRpc.ResultTypes;
 using Casper.Network.SDK.SSE;
 using Casper.Network.SDK.Types;
+using Casper.Network.SDK.Utils;
 using CsprSdkStandardTestsNet.Test.Tasks;
 using CsprSdkStandardTestsNet.Test.Utils;
 using NUnit.Framework;
@@ -75,6 +76,8 @@ public class Deploys {
 
         var senderKey = _contextMap.Get<KeyPair>(StepConstants.SENDER_KEY);
         
+        _contextMap.Add(StepConstants.DEPLOY_TIMESTAMP, DateUtils.ToEpochTime(DateTime.UtcNow));
+        
         var deploy = DeployTemplates.StandardTransfer(
             senderKey.PublicKey,
             _contextMap.Get<PublicKey>(StepConstants.RECEIVER_KEY),
@@ -85,7 +88,6 @@ public class Deploys {
             _contextMap.Get<ulong>(StepConstants.GAS_PRICE),
             (ulong)TimeSpan.FromMinutes(_contextMap.Get<ulong>(StepConstants.TTL)).TotalMilliseconds);
         
-    
         deploy.Sign(senderKey);
         
         var putResponse = await GetCasperService().PutDeploy(deploy);
@@ -132,7 +134,7 @@ public class Deploys {
     public void ThenTheDeployDataHasAnApiVersionOf(string apiVersion) {
         WriteLine("the deploy data has an API version of {0}", apiVersion);
         
-        Assert.That(getDeployData().Parse().ApiVersion, Is.EqualTo(apiVersion));
+        Assert.That(GetDeployData().Parse().ApiVersion, Is.EqualTo(apiVersion));
         
     }
 
@@ -140,7 +142,7 @@ public class Deploys {
     public void ThenTheDeployExecutionResultHasBlockHash(string lastBlockAdded) {
         WriteLine("the deploy execution result has {0} block hash", lastBlockAdded);
 
-        Assert.That(getDeployData().Parse().ExecutionResults[0].BlockHash,
+        Assert.That(GetDeployData().Parse().ExecutionResults[0].BlockHash,
             Is.EqualTo(_contextMap.Get<BlockAdded>(lastBlockAdded).BlockHash));
 
     }
@@ -149,14 +151,14 @@ public class Deploys {
     public void ThenTheDeployExecutionHasACostOfMotes(int cost) {
         WriteLine("the deploy execution has a cost of {0} motes", cost);
         
-        Assert.That(getDeployData().Parse().ExecutionResults[0].Cost, Is.EqualTo(new BigInteger(cost)));
+        Assert.That(GetDeployData().Parse().ExecutionResults[0].Cost, Is.EqualTo(new BigInteger(cost)));
     }
 
     [Then(@"the deploy has a payment amount of (.*)")]
     public void ThenTheDeployHasAPaymentAmountOf(int amount) {
         WriteLine("the deploy has a payment amount of {0}", amount);
         
-        var amountArg = getDeployData().Parse().Deploy.Payment.RuntimeArgs.Find(n => n.Name.Equals(StepConstants.AMOUNT));
+        var amountArg = GetDeployData().Parse().Deploy.Payment.RuntimeArgs.Find(n => n.Name.Equals(StepConstants.AMOUNT));
         
         Assert.That(amountArg, Is.Not.Null);
         Assert.That(amountArg.Value.TypeInfo.Type, Is.EqualTo(CLType.U512));
@@ -167,54 +169,154 @@ public class Deploys {
     [Then(@"the deploy has a valid hash")]
     public void ThenTheDeployHasAValidHash() {
         WriteLine("the deploy has a valid hash");
+
+        var deployResult = _contextMap.Get<RpcResponse<PutDeployResult>>(StepConstants.DEPLOY_RESULT);
+        
+        Assert.That(GetDeployData().Parse().Deploy.Hash, Is.EqualTo(deployResult.Parse().DeployHash));
     }
 
     [Then(@"the deploy has a valid timestamp")]
     public void ThenTheDeployHasAValidTimestamp() {
         WriteLine("the deploy has a valid timestamp");
+        
+        var timestamp = _contextMap.Get<ulong>(StepConstants.DEPLOY_TIMESTAMP);
+        Assert.That(GetDeployData().Parse().Deploy.Header.Timestamp, Is.EqualTo(timestamp));
+        
     }
 
     [Then(@"the deploy has a valid body hash")]
     public void ThenTheDeployHasAValidBodyHash() {
         WriteLine("the deploy has a valid body hash");
+        
+        // Obtain the hash of the put deploy and compare to one obtained with info_get_deploy
+        var deployResult = _contextMap.Get<RpcResponse<PutDeployResult>>(StepConstants.DEPLOY_RESULT);
+        Assert.That(GetDeployData().Parse().Deploy.Hash, Is.EqualTo(deployResult.Parse().DeployHash));
+        
     }
 
     [Then(@"the deploy has a session type of ""(.*)""")]
     public void ThenTheDeployHasASessionTypeOf(string sessionType) {
         WriteLine("the deploy has a session type of {0}", sessionType);
+
+        // var actualSessionType = getDeployData().Parse().Deploy.Session.GetType().IsClass;
+        //
+        // final String actualSessionType = getDeployData().getDeploy().getSession().getClass().getSimpleName().toLowerCase();
+        // final String expectedSessionType = sessionType.replace(" ", "").toLowerCase();
+        // assertThat(actualSessionType, is(expectedSessionType));
+        
     }
 
     [Then(@"the deploy is approved by user(.*)")]
     public void ThenTheDeployIsApprovedByUser(int user) {
         WriteLine("the deploy is approved by user-{0}", user);
+
+        var approvals = GetDeployData().Parse().Deploy.Approvals;
+        Assert.That(approvals.Count, Is.EqualTo(1));
+        
+        var userKeyAsset = AssetUtils.GetUserKeyAsset(1, user, StepConstants.PUBLIC_KEY_PEM);
+
+        var approvalKey = PublicKey.FromHexString(userKeyAsset);
+
+        Assert.That(approvals[0].Signer, Is.EqualTo(approvalKey));
+        
+
+        // final List<Approval> approvals = getDeployData().getDeploy().getApprovals();
+        // assertThat(approvals, hasSize(1));
+        //
+        // final Ed25519PublicKey approvalKey = new Ed25519PublicKey();
+        // final URL userKeyAsset = AssetUtils.getUserKeyAsset(1, userId, PUBLIC_KEY_PEM);
+        // approvalKey.readPublicKey(userKeyAsset.getFile());
+        // PublicKey publicKey = PublicKey.fromAbstractPublicKey(approvalKey);
+        //
+        // assertThat(approvals.get(0).getSigner(), is(publicKey));
+
     }
 
     [Then(@"the deploy has a gas price of (.*)")]
     public void ThenTheDeployHasAGasPriceOf(int gasPrice) {
         WriteLine("the deploy has a gas price of {0}", gasPrice);
+        
+        Assert.That(GetDeployData().Parse().Deploy.Header.GasPrice, Is.EqualTo(gasPrice));
+
     }
 
     [Then(@"the deploy has a ttl of (.*)m")]
     public void ThenTheDeployHasATtlOfM(int ttl) {
         WriteLine("the deploy has a ttl of {0}m", ttl);
+        
+        Assert.That(GetDeployData().Parse().Deploy.Header.Ttl, Is.EqualTo(ttl));
+
     }
 
     [Then(@"the deploy session has a ""(.*)"" argument value of type ""(.*)""")]
     public void ThenTheDeploySessionHasAArgumentValueOfType(string arg, string type) {
         WriteLine("the deploy session has a {0} argument value of type {1}", arg, type);
+
+        var session = GetDeployData().Parse().Deploy.Session;
+        var namedArg = session.RuntimeArgs.Find(n => n.Name.Equals(arg));
+
+        Assert.That(namedArg, Is.Not.Null);
+        Assert.That(namedArg.Value.TypeInfo, Is.EqualTo(type));
+        
+        // final ExecutableDeployItem session = getDeployData().getDeploy().getSession();
+        // final NamedArg<?> namedArg = getNamedArg(session.getArgs(), argName);
+        // assertThat(namedArg.getClValue().getClass().getSimpleName(), is("CLValue" + argType));
+
     }
 
     [Then(@"the deploy session has a ""(.*)"" argument with a numeric value of (.*)")]
     public void ThenTheDeploySessionHasAArgumentWithANumericValueOf(string arg, string value) {
         WriteLine("the deploy session has a {0} argument with a numeric value of {1}", arg, value);
+        
+        var session = GetDeployData().Parse().Deploy.Session;
+        var namedArg = session.RuntimeArgs.Find(n => n.Name.Equals(arg));
+
+        Assert.That(namedArg, Is.Not.Null);
+
+        if (namedArg.Value.TypeInfo.Type.Equals(CLType.U512)) {
+            Assert.That(namedArg.Value.Parsed, Is.EqualTo(BigInteger.Parse(value)));
+        } else {
+            throw new ArgumentException(namedArg.Value.TypeInfo.Type + " not yet implemented");
+        }
+        
+        // final ExecutableDeployItem session = getDeployData().getDeploy().getSession();
+        // final NamedArg<?> namedArg = getNamedArg(session.getArgs(), argName);
+        // if (namedArg.getClValue().getClType() instanceof CLTypeU512) {
+        //     assertThat(namedArg.getClValue().getValue(), is(BigInteger.valueOf(value)));
+        // } else {
+        //     throw new IllegalArgumentException(namedArg.getClValue().getClType().getClass().getSimpleName() + " not yet implemented");
+        // }
+        
     }
 
     [Then(@"the deploy session has a ""(.*)"" argument with the public key of user(.*)")]
     public void ThenTheDeploySessionHasAArgumentWithThePublicKeyOfUser(string arg, int user) {
         WriteLine("the deploy session has a {0} argument with the public key of user-{1}", arg, user);
+        
+        var session = GetDeployData().Parse().Deploy.Session;
+        var namedArg = session.RuntimeArgs.Find(n => n.Name.Equals(arg));
+        
+        Assert.That(namedArg, Is.Not.Null);
+        
+        var userKeyAsset = AssetUtils.GetUserKeyAsset(1, user, StepConstants.PUBLIC_KEY_PEM);
+
+        var publicKey = PublicKey.FromHexString(userKeyAsset);
+        
+        Assert.That(namedArg.Value.Parsed, Is.EqualTo(publicKey));
+        
+        // final ExecutableDeployItem session = getDeployData().getDeploy().getSession();
+        //
+        // final Ed25519PublicKey publicKey = new Ed25519PublicKey();
+        // publicKey.readPublicKey(AssetUtils.getUserKeyAsset(1, userId, PUBLIC_KEY_PEM).getFile());
+        //
+        // final NamedArg<?> namedArg = getNamedArg(session.getArgs(), argName);
+        // final CLValuePublicKey clValue = (CLValuePublicKey) namedArg.getClValue();
+        // assertThat(clValue.getValue(), is(PublicKey.fromAbstractPublicKey(publicKey)));
+        
+        
     }
     
-    private RpcResponse<GetDeployResult> getDeployData() {
+    private RpcResponse<GetDeployResult> GetDeployData() {
         return _contextMap.Get<RpcResponse<GetDeployResult>>(StepConstants.INFO_GET_DEPLOY);
     }
     
