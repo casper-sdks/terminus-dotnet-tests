@@ -15,6 +15,7 @@ namespace CsprSdkStandardTestsNet.Test.Tasks;
 public class BlockAddedTask {
 
     private static readonly TestProperties TestProperties = new();
+    private readonly ContextMap _contextMap = ContextMap.Instance;    
 
     public void HasTransferHashWithin(string blockHash, int timeout) {
         
@@ -28,7 +29,7 @@ public class BlockAddedTask {
         }
     }
 
-    private static void Listen(string blockHash, CancellationToken ct) {
+    private void Listen(string blockHash, CancellationToken ct) {
 
         var sse = new ServerEventsClient(TestProperties.Hostname, TestProperties.SsePort);
         var matched = false;
@@ -41,6 +42,7 @@ public class BlockAddedTask {
                     
                     if (block.Block.Body.TransferHashes.Contains(blockHash, StringComparer.OrdinalIgnoreCase)){
                         matched = true;
+                        _contextMap.Add(StepConstants.LAST_BLOCK_ADDED, block);
                     }
                     
                 }
