@@ -11,6 +11,10 @@ using static System.Console;
 
 namespace CsprSdkStandardTestsNet.Test.Steps;
 
+/**
+ * Steps to test key generation
+ */
+
 [Binding]
 public class DeployGeneratedKeys {
     
@@ -28,7 +32,7 @@ public class DeployGeneratedKeys {
         Assert.That(keyPair, Is.Not.Null);
         Assert.That(keyPair.PublicKey, Is.Not.Null);
         
-        _contextMap.Add("SENDER_KEY_PAIR", keyPair);
+        _contextMap.Add(StepConstants.SENDER_KEY_PAIR, keyPair);
 
     }
 
@@ -47,9 +51,8 @@ public class DeployGeneratedKeys {
         _contextMap.Add(StepConstants.TRANSFER_AMOUNT, BigInteger.Parse(transferAmount));
         _contextMap.Add(StepConstants.PAYMENT_AMOUNT, BigInteger.Parse(paymentAmount));
 
-        await DoDeploy(faucetKey, _contextMap.Get<KeyPair>("SENDER_KEY_PAIR"));
-        
-        
+        await DoDeploy(faucetKey, _contextMap.Get<KeyPair>(StepConstants.SENDER_KEY_PAIR));
+
     }
 
     [Given(@"that a ""(.*)"" receiver key is generated")]
@@ -66,7 +69,7 @@ public class DeployGeneratedKeys {
         
         Assert.That(keyPair.PublicKey.VerifySignature(msg, signature), Is.True);
         
-        _contextMap.Add("RECEIVER_KEY_PAIR", keyPair);
+        _contextMap.Add(StepConstants.RECEIVER_KEY_PAIR, keyPair);
 
     }
 
@@ -77,7 +80,7 @@ public class DeployGeneratedKeys {
         _contextMap.Add(StepConstants.TRANSFER_AMOUNT, BigInteger.Parse(transferAmount));
         _contextMap.Add(StepConstants.PAYMENT_AMOUNT, BigInteger.Parse(paymentAmount));
 
-        await DoDeploy(_contextMap.Get<KeyPair>("SENDER_KEY_PAIR"), _contextMap.Get<KeyPair>("RECEIVER_KEY_PAIR"));
+        await DoDeploy(_contextMap.Get<KeyPair>(StepConstants.SENDER_KEY_PAIR), _contextMap.Get<KeyPair>(StepConstants.RECEIVER_KEY_PAIR));
         
     }
     
@@ -114,6 +117,5 @@ public class DeployGeneratedKeys {
         _contextMap.Add(StepConstants.DEPLOY_RESULT, putResponse);
 
     }
-    
     
 }
