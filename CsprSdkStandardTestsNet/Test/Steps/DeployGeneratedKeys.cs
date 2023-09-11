@@ -91,7 +91,7 @@ public class DeployGeneratedKeys {
         var block = await GetCasperService().GetBlock(matchingBlockHash.BlockHash);
 
         Assert.That(block, Is.Not.Null);
-        Assert.That(block.Parse().Block.Body.Proposer.KeyAlgorithm.ToString(), Is.EqualTo(algo.ToUpper()));
+        Assert.That(block.Parse().Block.Body.Proposer.PublicKey.KeyAlgorithm.ToString(), Is.EqualTo(algo.ToUpper()));
 
     }
     
