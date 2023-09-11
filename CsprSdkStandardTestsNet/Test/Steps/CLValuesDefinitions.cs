@@ -245,7 +245,12 @@ public partial class CLValuesDefinitions {
     }
     
     private void AssertOption(NamedArg arg, string types, string values) {
-        throw new NotImplementedException();
+        
+        if (arg.Value.IsSome()){
+            arg.Value.Some(out var v);
+            Assert.That(v, Is.EqualTo(bool.Parse(values)));
+        } else
+            Assert.Fail();
     }
 
     private void AssertClValues(CLValue actual, CLValue expected, CLType type) {
