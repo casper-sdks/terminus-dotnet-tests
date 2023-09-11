@@ -1,8 +1,5 @@
+using System.IO;
 using Casper.Network.SDK.Types;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Generators;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
 using TechTalk.SpecFlow;
 using static System.Console;
 
@@ -18,15 +15,23 @@ public class DeployGeneratedKeys {
         // var keyPair = KeyPair.CreateNew(KeyAlgo.ED25519);
         // var pk = keyPair.PublicKey;
 
-        var gen = new Ed25519KeyPairGenerator();
-        gen.Init(new KeyGenerationParameters(new SecureRandom(), 255));
-        var newKey = gen.GenerateKeyPair();
-        var publicKey = (Ed25519PublicKeyParameters)newKey.Public;
+        // var gen = new Ed25519KeyPairGenerator();
+        // gen.Init(new KeyGenerationParameters(new SecureRandom(), 255));
+        // var newKey = gen.GenerateKeyPair();
+        // var publicKey = (Ed25519PublicKeyParameters)newKey.Public;
+        //
+        // var pk = PublicKey.FromRawBytes(publicKey.GetEncoded(), KeyAlgo.ED25519);
+        // var sk = newKey.Private;
 
-        var pk = PublicKey.FromRawBytes(publicKey.GetEncoded(), KeyAlgo.ED25519);
-        var sk = newKey.Private;
 
+        var keyPair = KeyPair.CreateNew(KeyAlgo.ED25519);
+        var tmpfile = Path.GetTempFileName();
+        File.Delete(tmpfile);
+            
+        keyPair.WriteToPem(tmpfile);
 
+        var keyPair2 = KeyPair.FromPem(tmpfile);
+        
 
     }
 
