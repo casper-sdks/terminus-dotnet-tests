@@ -17,3 +17,4 @@ Feature: deploys_generated_keys
         Then transfer to the receiver account the transfer amount of 2500000000 and the payment amount of 100000
         Then wait for a block added event with a timeout of 300 seconds
         And the transfer approvals signer contains the "Secp256k1" algo
+        

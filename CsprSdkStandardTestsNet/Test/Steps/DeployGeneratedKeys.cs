@@ -19,6 +19,7 @@ namespace CsprSdkStandardTestsNet.Test.Steps;
 public class DeployGeneratedKeys {
     
     private readonly ContextMap _contextMap = ContextMap.Instance;    
+    
     private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
     }
