@@ -19,8 +19,10 @@ public static class StepConstants {
     public const string PUBLIC_KEY_PEM = "public_key.pem";
     public const string PUT_DEPLOY = "put-deploy";
     public const string RECEIVER_KEY = "receiverKey";
+    public const string RECEIVER_KEY_PAIR = "receiverKeyPair";
     public const string SECRET_KEY_PEM = "secret_key.pem";
     public const string SENDER_KEY = "senderKey";
+    public const string SENDER_KEY_PAIR = "senderKeyPair";
     public const string SENDER_KEY_SK = "senderKeySk";
     public const string SENDER_KEY_PK = "senderKeyPk";
     public const string STATE_ACCOUNT_INFO = "stateAccountInfo";

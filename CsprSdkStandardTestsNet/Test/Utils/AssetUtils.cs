@@ -12,4 +12,16 @@ public static class AssetUtils {
 
         return path;
     }
+    
+    public static string GetFaucetAsset(int networkId, string keyFilename) {
+        var path = $"/net-{networkId}/faucet/{keyFilename}";
+        
+        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())!.Parent;
+        if (directoryInfo != null)
+            path = directoryInfo.Parent!.FullName + "/assets" + path;
+
+        return path;
+    }
+    
+    
 }
