@@ -1,3 +1,4 @@
+// ReSharper disable InconsistentNaming
 namespace CsprSdkStandardTestsNet.Test.Utils; 
 
 public static class StepConstants {
@@ -39,5 +40,7 @@ public static class StepConstants {
     public const string WASM_PATH = "wasmPath";
     public const string CLVALUE = "clValue";
     public const string CLVALUES = "clValues";
+    public const string SDK_ERA_SUMMARY = "sdkEraSummary";
+    public const string NODE_ERA_SUMMARY = "nodeEraSummary";
     
 }

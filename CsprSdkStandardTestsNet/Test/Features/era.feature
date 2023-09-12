@@ -10,3 +10,4 @@ Feature: Era Integration Tests
         And the state root hash of the returned era summary is equal to the state root hash of the returned test node era summary
         And the delegators data of the returned era summary is equal to the delegators data of the returned test node era summary
         And the validators data of the returned era summary is equal to the validators data of the returned test node era summary
+        
