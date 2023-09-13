@@ -20,8 +20,7 @@ namespace CsprSdkStandardTestsNet.Test.Steps;
  */
 [Binding]
 public partial class CLValuesDefinitions {
-   
-   
+
     private readonly ContextMap _contextMap = ContextMap.Instance;
     
     [BeforeScenario()]
