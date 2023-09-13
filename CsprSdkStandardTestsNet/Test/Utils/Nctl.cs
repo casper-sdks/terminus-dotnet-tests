@@ -9,7 +9,7 @@ namespace CsprSdkStandardTestsNet.Test.Utils;
  * Calls to the NCTL docker image 
  */
 
-public class Nctl {
+public partial class Nctl {
     private readonly string _dockerName;
 
     public Nctl(string dockerName) {
@@ -17,11 +17,9 @@ public class Nctl {
     }
     
     public JsonNode GetNodeStatus(int nodeId) {
-        var e=  Execute("view_node_status.sh", "node=" + nodeId, ParseJsonWithPreAmble);
-        return e;
+        return Execute("view_node_status.sh", "node=" + nodeId, ParseJsonWithPreAmble);
     }
     
-
     public JsonNode GetChainBlock(string blockHash) {
         return Execute("view_chain_block.sh", "block=" + blockHash, ParseJson);
     }
@@ -67,7 +65,9 @@ public class Nctl {
     
     private static string ReplaceAnsiConsoleCodes(string response) {
         //remove any console colour ANSI info
-        return Regex.Replace(response, "\u001B\\[[;\\d]*m", "");
+        return AnsiRegex().Replace(response, "");
     }
-    
+
+    [GeneratedRegex("\u001b\\[[;\\d]*m")]
+    private static partial Regex AnsiRegex();
 }
