@@ -15,6 +15,12 @@ public class Nctl {
     public Nctl(string dockerName) {
         _dockerName = dockerName;
     }
+    
+    public JsonNode GetNodeStatus(int nodeId) {
+        var e=  Execute("view_node_status.sh", "node=" + nodeId, ParseJsonWithPreAmble);
+        return e;
+    }
+    
 
     public JsonNode GetChainBlock(string blockHash) {
         return Execute("view_chain_block.sh", "block=" + blockHash, ParseJson);
@@ -50,6 +56,9 @@ public class Nctl {
 
     private static JsonNode ParseJson(string input) {
         return JsonNode.Parse(ReplaceAnsiConsoleCodes(input));
+    }
+    private static JsonNode ParseJsonWithPreAmble(string input) {
+        return JsonNode.Parse(ReplaceAnsiConsoleCodes(input[input.IndexOf("{", StringComparison.Ordinal)..]));
     }
     
     private static string ParseString(string input) {
