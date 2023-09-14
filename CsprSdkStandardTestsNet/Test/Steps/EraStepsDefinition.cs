@@ -18,7 +18,6 @@ public class EraStepsDefinition {
     
     private SimpleRcpClient _simpleRcpClient = new(TestProperties.Hostname, TestProperties.RcpPort);
     
-
     private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
     }
