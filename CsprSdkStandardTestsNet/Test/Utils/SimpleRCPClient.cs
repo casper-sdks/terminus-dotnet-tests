@@ -29,6 +29,10 @@ public class SimpleRcpClient {
         return Rcp("chain_get_era_summary", "[{\"Hash\":  \"" + hash + "\"}]");
     }
     
+    public Task<JsonNode> GetValidatorChanges(){
+        return Rcp("info_get_validator_changes", "[]");
+}
+    
     private async Task<JsonNode> Rcp(string method, string _params) {
 
         var client = new HttpClient();
