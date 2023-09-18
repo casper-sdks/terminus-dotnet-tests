@@ -30,6 +30,7 @@ public class Deploys {
     [Given(@"that user-(.*) initiates a transfer to user-(.*)")]
     public void GivenThatUserInitiatesATransferToUser(int senderId, int receiverId) {
         WriteLine("that user-{0} initiates a transfer to user-{1}", senderId, receiverId);
+        
         var senderPem = AssetUtils.GetUserKeyAsset(1, 1, "secret_key.pem");
         var senderKey = KeyPair.FromPem(senderPem);
 
