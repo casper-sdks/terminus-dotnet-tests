@@ -12,10 +12,12 @@ using CsprSdkStandardTestsNet.Test.Utils;
 using NUnit.Framework;
 using TechTalk.SpecFlow;
 using static System.Console;
-using Contains = NUnit.Framework.Contains;
-using Is = NUnit.Framework.Is;
 
 namespace CsprSdkStandardTestsNet.Test.Steps;
+
+/**
+ * Query global state step definitions
+ */
 
 [Binding]
 public class QueryGlobalStateStepDefinitions {
@@ -38,7 +40,6 @@ public class QueryGlobalStateStepDefinitions {
         WriteLine("that a valid block hash is known");
 
         await CreateTransfer();
-
         await WaitForBlockAdded();
         
         Assert.That(_contextMap.Get<BlockAdded>(StepConstants.LAST_BLOCK_ADDED), Is.Not.Null);
@@ -52,11 +53,8 @@ public class QueryGlobalStateStepDefinitions {
         var deployResult = _contextMap.Get<RpcResponse<PutDeployResult>>(StepConstants.DEPLOY_RESULT);
         var blockHash = _contextMap.Get<BlockAdded>(StepConstants.LAST_BLOCK_ADDED).BlockHash;
 
-        var globalStateIdentifier = blockHash;
         var key = GlobalStateKey.FromString("deploy-" + deployResult.Parse().DeployHash);
 
-        var stateRootHash = await GetCasperService().GetStateRootHash();
-        
         var globalStateData = 
             await GetCasperService().QueryGlobalStateWithBlockHash(key, blockHash);
 
@@ -64,18 +62,6 @@ public class QueryGlobalStateStepDefinitions {
         
         _contextMap.Add(StepConstants.GLOBAL_STATE_DATA, globalStateData);
         
-        // final Digest blockHash = ((BlockAdded) contextMap.get(LAST_BLOCK_ADDED)).getBlockHash();
-        // final BlockHashIdentifier globalStateIdentifier = new BlockHashIdentifier(blockHash.toString());
-        //
-        // final DeployResult deployResult = contextMap.get(DEPLOY_RESULT);
-        // final String key = "deploy-" + deployResult.getDeployHash();
-        //
-        // final GlobalStateData globalStateData = casperService.queryGlobalState(globalStateIdentifier, key, new String[0]);
-        // assertThat(globalStateData, is(notNullValue()));
-        //
-        // contextMap.put(GLOBAL_STATE_DATA, globalStateData);
-
-
     }
 
     [Then(@"a valid query_global_state_result is returned")]
@@ -137,6 +123,7 @@ public class QueryGlobalStateStepDefinitions {
         var deployInfo = globalStateData.Parse().StoredValue.DeployInfo;
 
         Assert.That(deployInfo.Transfers[0].ToString()!.StartsWith("transfer-"), Is.True);
+        
     }
 
     [Then(@"the query_global_state_result stored value contains the transfer source uref")]
@@ -148,6 +135,7 @@ public class QueryGlobalStateStepDefinitions {
         var accountMainPurse = _nctl.GetAccountMainPurse(1);
         
         Assert.That(deployInfo.Source.ToString().ToUpper(), Is.EqualTo(accountMainPurse.ToUpper()));
+        
     }
 
     [Given(@"that the state root hash is known")]
@@ -167,15 +155,11 @@ public class QueryGlobalStateStepDefinitions {
         WriteLine("the query_global_state RCP method is invoked with the state root hash as the query identifier and an invalid key");
 
         var stateRootHash = _contextMap.Get<string>(StepConstants.STATE_ROOT_HASH);
-        var key = "uref-1118dca90ddda82ab7d9ac11518c81652b9fc8c704c535f39a4ddae95b3ec591-007";
+        var key = "uref-d0343bb766946f9f850a67765aae267044fa79a6cd50235ffff248a37534-007";
 
-        try
-        { 
+        try { 
             await GetCasperService().QueryGlobalState(key, stateRootHash);
-
-        }
-        catch (RpcClientException e)
-        {
+        } catch (RpcClientException e) {
             _contextMap.Add(StepConstants.CLIENT_EXCEPTION, e);            
         }
     
@@ -186,7 +170,7 @@ public class QueryGlobalStateStepDefinitions {
         WriteLine("an error code of {0} is returned", code);
 
         var clientException = _contextMap.Get<RpcClientException>(StepConstants.CLIENT_EXCEPTION);
-        // Assert.That(clientException.RpcError.Code, Is.EqualTo(code));
+        Assert.That(clientException.RpcError.Code, Is.EqualTo(code));
 
     }
 
@@ -195,15 +179,22 @@ public class QueryGlobalStateStepDefinitions {
         WriteLine("an error message of {0} is returned", msg);
         
         var clientException = _contextMap.Get<RpcClientException>(StepConstants.CLIENT_EXCEPTION);
-        // Assert.That(clientException.RpcError.Message, Contains.Substring(msg));
+        Assert.That(clientException.RpcError.Message, Contains.Substring(msg));
         
     }
 
     [Given(@"the query_global_state RCP method is invoked with an invalid block hash as the query identifier")]
-    public void GivenTheQueryGlobalStateRcpMethodIsInvokedWithAnInvalidBlockHashAsTheQueryIdentifier() {
+    public async Task GivenTheQueryGlobalStateRcpMethodIsInvokedWithAnInvalidBlockHashAsTheQueryIdentifier() {
         WriteLine("the query_global_state RCP method is invoked with an invalid block hash as the query identifier");
         
-        
+        var block = "00112233441343670f71afb96018ab193855a85adc412f81571570dea34f2ca6500";
+        var key = "deploy-80fbb9c25eebda88e5d2eb9a0f7053ad6098d487aff841dc719e1526e0f59728";
+
+        try {
+            await GetCasperService().QueryGlobalStateWithBlockHash(key, block);
+        } catch (RpcClientException e) {
+            _contextMap.Add(StepConstants.CLIENT_EXCEPTION, e);
+        }
         
     }
 
@@ -236,6 +227,7 @@ public class QueryGlobalStateStepDefinitions {
         var putResponse = await GetCasperService().PutDeploy(deploy);
         
         _contextMap.Add(StepConstants.DEPLOY_RESULT, putResponse);
+        
     }
     
     
@@ -259,6 +251,5 @@ public class QueryGlobalStateStepDefinitions {
         Assert.That(transferHashes, Contains.Item(deployResult.Parse().DeployHash));
         
     }
-    
     
 }

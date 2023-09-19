@@ -2,9 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using NHamcrest;
 using NUnit.Framework;
-using Is = NUnit.Framework.Is;
 
 namespace CsprSdkStandardTestsNet.Test.Utils;
 
@@ -19,7 +17,6 @@ public partial class Nctl {
         _dockerName = dockerName;
     }
 
-
     public string GetAccountMainPurse(int userId) {
         
         var node = Execute("view_user_account.sh", "user=" + userId, ParseJsonWithPreAmble);
@@ -30,12 +27,12 @@ public partial class Nctl {
         Assert.That(mainPurse.StartsWith("uref-"), Is.True);
 
         return mainPurse;
+        
     }
     
-
     public string GetAccountHash(int userId) {
 
-        var node = GetUserAccount(userId);
+        var node = Execute("view_user_account.sh", "user=" + userId, ParseJsonWithPreAmble);
         var accountHash = node["stored_value"]!["Account"]!["account_hash"];
         
         Assert.That(accountHash, Is.Not.Null);
@@ -60,10 +57,6 @@ public partial class Nctl {
     public string GetStateRootHash(int nodeId) {
         return Execute("view_chain_state_root_hash.sh", "node=" + nodeId, ParseString)
             .Split("=")[1].Trim();
-    }
-
-    public JsonNode GetUserAccount(int userId) {
-        return Execute("view_user_account.sh", "user=" + userId, ParseJsonWithPreAmble);
     }
     
     private T Execute<T> (string shellCommand, string parameters, Func<string, T> func) {
@@ -103,4 +96,5 @@ public partial class Nctl {
 
     [GeneratedRegex("\u001b\\[[;\\d]*m")]
     private static partial Regex AnsiRegex();
+    
 }
