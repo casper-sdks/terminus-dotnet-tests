@@ -198,7 +198,7 @@ public class QueryGlobalStateStepDefinitions {
         
     }
 
-    private async Task CreateTransfer(){
+    private async Task CreateTransfer() {
 
         var senderPem = AssetUtils.GetUserKeyAsset(1, 1, "secret_key.pem");
         var senderKey = KeyPair.FromPem(senderPem);
