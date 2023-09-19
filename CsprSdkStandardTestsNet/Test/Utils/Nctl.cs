@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using NUnit.Framework;
 
 namespace CsprSdkStandardTestsNet.Test.Utils;
 
@@ -14,6 +15,31 @@ public partial class Nctl {
 
     public Nctl(string dockerName) {
         _dockerName = dockerName;
+    }
+
+    public string GetAccountMainPurse(int userId) {
+        
+        var node = Execute("view_user_account.sh", "user=" + userId, ParseJsonWithPreAmble);
+
+        var mainPurse = node["stored_value"]!["Account"]!["main_purse"]!.ToString();
+        
+        Assert.That(mainPurse, Is.Not.Null);
+        Assert.That(mainPurse.StartsWith("uref-"), Is.True);
+
+        return mainPurse;
+        
+    }
+    
+    public string GetAccountHash(int userId) {
+
+        var node = Execute("view_user_account.sh", "user=" + userId, ParseJsonWithPreAmble);
+        var accountHash = node["stored_value"]!["Account"]!["account_hash"];
+        
+        Assert.That(accountHash, Is.Not.Null);
+        Assert.That(accountHash.ToString().StartsWith("account-hash-"), Is.True);
+        
+        return accountHash.ToString();
+
     }
     
     public JsonNode GetNodeStatus(int nodeId) {
@@ -32,7 +58,7 @@ public partial class Nctl {
         return Execute("view_chain_state_root_hash.sh", "node=" + nodeId, ParseString)
             .Split("=")[1].Trim();
     }
-
+    
     private T Execute<T> (string shellCommand, string parameters, Func<string, T> func) {
         
         ProcessStartInfo startInfo = new() {
@@ -70,4 +96,5 @@ public partial class Nctl {
 
     [GeneratedRegex("\u001b\\[[;\\d]*m")]
     private static partial Regex AnsiRegex();
+    
 }
