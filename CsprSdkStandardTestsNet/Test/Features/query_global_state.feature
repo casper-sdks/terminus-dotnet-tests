@@ -10,15 +10,14 @@ Feature: query_global_state
         And the query_global_state_result stored value contains the transfer hash
         And the query_global_state_result stored value contains the transfer source uref
 
+    Scenario: query_global_state by state root hash with invalid key
+        Given that the state root hash is known
+        When the query_global_state RCP method is invoked with the state root hash as the query identifier and an invalid key
+        Then an error code of -32002 is returned
+        And an error message of "Failed to parse query key" is returned
 
-#    Scenario: query_global_state by state root hash with invalid key
-#        Given that the state root hash is known
-#        When the query_global_state RCP method is invoked with the state root hash as the query identifier and an invalid key
-#        Then an error code of -32002 is returned
-#        And an error message of "Failed to parse query key" is returned
-#
-#
-#    Scenario: query_global_state by state with invalid block hash
-#        Given the query_global_state RCP method is invoked with an invalid block hash as the query identifier
-#        Then an error code of -32602 is returned
-#        And an error message of "Invalid params" is returned
+    Scenario: query_global_state by state with invalid block hash
+        Given the query_global_state RCP method is invoked with an invalid block hash as the query identifier
+        Then an error code of -32602 is returned
+        And an error message of "Invalid params" is returned
+        

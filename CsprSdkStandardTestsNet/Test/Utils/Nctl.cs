@@ -2,6 +2,9 @@ using System;
 using System.Diagnostics;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using NHamcrest;
+using NUnit.Framework;
+using Is = NUnit.Framework.Is;
 
 namespace CsprSdkStandardTestsNet.Test.Utils;
 
@@ -14,6 +17,32 @@ public partial class Nctl {
 
     public Nctl(string dockerName) {
         _dockerName = dockerName;
+    }
+
+
+    public string GetAccountMainPurse(int userId) {
+        
+        var node = Execute("view_user_account.sh", "user=" + userId, ParseJsonWithPreAmble);
+
+        var mainPurse = node["stored_value"]!["Account"]!["main_purse"]!.ToString();
+        
+        Assert.That(mainPurse, Is.Not.Null);
+        Assert.That(mainPurse.StartsWith("uref-"), Is.True);
+
+        return mainPurse;
+    }
+    
+
+    public string GetAccountHash(int userId) {
+
+        var node = GetUserAccount(userId);
+        var accountHash = node["stored_value"]!["Account"]!["account_hash"];
+        
+        Assert.That(accountHash, Is.Not.Null);
+        Assert.That(accountHash.ToString().StartsWith("account-hash-"), Is.True);
+        
+        return accountHash.ToString();
+
     }
     
     public JsonNode GetNodeStatus(int nodeId) {
@@ -33,6 +62,10 @@ public partial class Nctl {
             .Split("=")[1].Trim();
     }
 
+    public JsonNode GetUserAccount(int userId) {
+        return Execute("view_user_account.sh", "user=" + userId, ParseJsonWithPreAmble);
+    }
+    
     private T Execute<T> (string shellCommand, string parameters, Func<string, T> func) {
         
         ProcessStartInfo startInfo = new() {

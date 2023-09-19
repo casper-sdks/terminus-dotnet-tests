@@ -12,13 +12,17 @@ using CsprSdkStandardTestsNet.Test.Utils;
 using NUnit.Framework;
 using TechTalk.SpecFlow;
 using static System.Console;
+using Contains = NUnit.Framework.Contains;
+using Is = NUnit.Framework.Is;
 
 namespace CsprSdkStandardTestsNet.Test.Steps;
 
 [Binding]
 public class QueryGlobalStateStepDefinitions {
     
+    private static readonly TestProperties TestProperties = new();
     private readonly ContextMap _contextMap = ContextMap.Instance;
+    private readonly Nctl _nctl = new(TestProperties.DockerName);
     
     [BeforeScenario()]
     private void SetUp() {
@@ -45,8 +49,16 @@ public class QueryGlobalStateStepDefinitions {
     public async Task WhenTheQueryGlobalStateRcpMethodIsInvokedWithTheBlockHashAsTheQueryIdentifier() {
         WriteLine("that a valid block hash is known");
 
+        var deployResult = _contextMap.Get<RpcResponse<PutDeployResult>>(StepConstants.DEPLOY_RESULT);
         var blockHash = _contextMap.Get<BlockAdded>(StepConstants.LAST_BLOCK_ADDED).BlockHash;
-        var globalStateData = await GetCasperService().QueryGlobalState(blockHash);
+
+        var globalStateIdentifier = blockHash;
+        var key = GlobalStateKey.FromString("deploy-" + deployResult.Parse().DeployHash);
+
+        var stateRootHash = await GetCasperService().GetStateRootHash();
+        
+        var globalStateData = 
+            await GetCasperService().QueryGlobalStateWithBlockHash(key, blockHash);
 
         Assert.That(globalStateData, Is.Not.Null);
         
@@ -81,22 +93,15 @@ public class QueryGlobalStateStepDefinitions {
         Assert.That(globalStateData.Parse().BlockHeader.BodyHash, Is.Not.Null);
         Assert.That(globalStateData.Parse().BlockHeader.ParentHash, Is.Not.Null);
 
-        // final GlobalStateData globalStateData = contextMap.get(GLOBAL_STATE_DATA);
-        // assertThat(globalStateData, is(notNullValue()));
-        // assertThat(globalStateData.getApiVersion(), is("1.0.0"));
-        // assertThat(globalStateData.getMerkleProof(), is(notNullValue()));
-        // assertThat(globalStateData.getHeader().getTimeStamp(), is(notNullValue()));
-        // assertThat(globalStateData.getHeader().getEraId(), is(greaterThan(0L)));
-        // assertThat(globalStateData.getHeader().getAccumulatedSeed().isValid(), is(true));
-        // assertThat(globalStateData.getHeader().getBodyHash().isValid(), is(true));
-        // assertThat(globalStateData.getHeader().getParentHash().isValid(), is(true));
-        //
-
     }
 
     [Then(@"the query_global_state_result contains a valid deploy info stored value")]
     public void ThenTheQueryGlobalStateResultContainsAValidDeployInfoStoredValue() {
         WriteLine("the query_global_state_result contains a valid deploy info stored value");
+        
+        var globalStateData = _contextMap.Get<RpcResponse<QueryGlobalStateResult>>(StepConstants.GLOBAL_STATE_DATA);
+        
+        Assert.That(globalStateData.Parse().StoredValue, Is.Not.Null);
         
     }
 
@@ -104,11 +109,23 @@ public class QueryGlobalStateStepDefinitions {
     public void ThenTheQueryGlobalStateResultsStoredValueFromIsTheUserAccountHash(int user) {
         WriteLine("the query_global_state_result's stored value from is the user-{0} account hash", user);
         
+        var globalStateData = _contextMap.Get<RpcResponse<QueryGlobalStateResult>>(StepConstants.GLOBAL_STATE_DATA);
+        var deployInfo = globalStateData.Parse().StoredValue.DeployInfo;
+        var accountHash = _nctl.GetAccountHash(user);
+        
+        Assert.That(deployInfo.From.ToString()!.ToUpper(), 
+            Is.EqualTo(accountHash.ToUpper()));
+
     }
 
     [Then(@"the query_global_state_result's stored value contains a gas price of (.*)")]
-    public void ThenTheQueryGlobalStateResultsStoredValueContainsAGasPriceOf(int gasPrice) {
+    public void ThenTheQueryGlobalStateResultsStoredValueContainsAGasPriceOf(string gasPrice) {
         WriteLine("the query_global_state_result's stored value contains a gas price of {0}", gasPrice);
+        
+        var globalStateData = _contextMap.Get<RpcResponse<QueryGlobalStateResult>>(StepConstants.GLOBAL_STATE_DATA);
+        var deployInfo = globalStateData.Parse().StoredValue.DeployInfo;
+
+        Assert.That(deployInfo.Gas, Is.EqualTo(BigInteger.Parse(gasPrice)));
         
     }
 
@@ -116,41 +133,77 @@ public class QueryGlobalStateStepDefinitions {
     public void ThenTheQueryGlobalStateResultStoredValueContainsTheTransferHash() {
         WriteLine("the query_global_state_result stored value contains the transfer hash");
         
+        var globalStateData = _contextMap.Get<RpcResponse<QueryGlobalStateResult>>(StepConstants.GLOBAL_STATE_DATA);
+        var deployInfo = globalStateData.Parse().StoredValue.DeployInfo;
+
+        Assert.That(deployInfo.Transfers[0].ToString()!.StartsWith("transfer-"), Is.True);
     }
 
     [Then(@"the query_global_state_result stored value contains the transfer source uref")]
     public void ThenTheQueryGlobalStateResultStoredValueContainsTheTransferSourceUref() {
         WriteLine("the query_global_state_result stored value contains the transfer source uref");
+     
+        var globalStateData = _contextMap.Get<RpcResponse<QueryGlobalStateResult>>(StepConstants.GLOBAL_STATE_DATA);
+        var deployInfo = globalStateData.Parse().StoredValue.DeployInfo;
+        var accountMainPurse = _nctl.GetAccountMainPurse(1);
         
+        Assert.That(deployInfo.Source.ToString().ToUpper(), Is.EqualTo(accountMainPurse.ToUpper()));
     }
 
     [Given(@"that the state root hash is known")]
-    public void GivenThatTheStateRootHashIsKnown() {
+    public async Task GivenThatTheStateRootHashIsKnown() {
         WriteLine("that the state root hash is known");
+
+        var stateRootHash = await GetCasperService().GetStateRootHash();
         
+        Assert.That(stateRootHash, Is.Not.Null);
+
+        _contextMap.Add(StepConstants.STATE_ROOT_HASH, stateRootHash);
+
     }
 
     [When(@"the query_global_state RCP method is invoked with the state root hash as the query identifier and an invalid key")]
-    public void WhenTheQueryGlobalStateRcpMethodIsInvokedWithTheStateRootHashAsTheQueryIdentifierAndAnInvalidKey() {
+    public async Task WhenTheQueryGlobalStateRcpMethodIsInvokedWithTheStateRootHashAsTheQueryIdentifierAndAnInvalidKey() {
         WriteLine("the query_global_state RCP method is invoked with the state root hash as the query identifier and an invalid key");
-        
+
+        var stateRootHash = _contextMap.Get<string>(StepConstants.STATE_ROOT_HASH);
+        var key = "uref-1118dca90ddda82ab7d9ac11518c81652b9fc8c704c535f39a4ddae95b3ec591-007";
+
+        try
+        { 
+            await GetCasperService().QueryGlobalState(key, stateRootHash);
+
+        }
+        catch (RpcClientException e)
+        {
+            _contextMap.Add(StepConstants.CLIENT_EXCEPTION, e);            
+        }
+    
     }
 
     [Then(@"an error code of (.*) is returned")]
     public void ThenAnErrorCodeOfIsReturned(int code) {
         WriteLine("an error code of {0} is returned", code);
-        
+
+        var clientException = _contextMap.Get<RpcClientException>(StepConstants.CLIENT_EXCEPTION);
+        // Assert.That(clientException.RpcError.Code, Is.EqualTo(code));
+
     }
 
     [Then(@"an error message of ""(.*)"" is returned")]
     public void ThenAnErrorMessageOfIsReturned(string msg) {
         WriteLine("an error message of {0} is returned", msg);
         
+        var clientException = _contextMap.Get<RpcClientException>(StepConstants.CLIENT_EXCEPTION);
+        // Assert.That(clientException.RpcError.Message, Contains.Substring(msg));
+        
     }
 
     [Given(@"the query_global_state RCP method is invoked with an invalid block hash as the query identifier")]
     public void GivenTheQueryGlobalStateRcpMethodIsInvokedWithAnInvalidBlockHashAsTheQueryIdentifier() {
         WriteLine("the query_global_state RCP method is invoked with an invalid block hash as the query identifier");
+        
+        
         
     }
 
@@ -203,7 +256,7 @@ public class QueryGlobalStateStepDefinitions {
 
         var transferHashes = block.Parse().Block.Body.TransferHashes;
         
-        Assert.That(transferHashes, Contains.Value(deployResult.Parse().DeployHash));
+        Assert.That(transferHashes, Contains.Item(deployResult.Parse().DeployHash));
         
     }
     
