@@ -21,9 +21,6 @@
         <PackageReference Include="SpecFlow" Version="3.9.74" />
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="Test\" />
-    </ItemGroup>
-    <ItemGroup>
         <None Update="allureConfig.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
