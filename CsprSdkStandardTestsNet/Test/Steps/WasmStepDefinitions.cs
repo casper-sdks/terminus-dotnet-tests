@@ -15,6 +15,9 @@ using static System.Console;
 
 namespace CsprSdkStandardTestsNet.Test.Steps;
 
+/**
+ * wasm contract step definitions
+ */
 [Binding]
 public class WasmStepDefinitions {
     

@@ -11,6 +11,10 @@ using static System.Console;
 
 namespace CsprSdkStandardTestsNet.Test.Steps;
 
+/**
+ * State get account info step definitions
+ */
+
 [Binding]
 public class StateGetAccountInfoStepDefinitions {
     
@@ -27,7 +31,6 @@ public class StateGetAccountInfoStepDefinitions {
         return CasperClientProvider.GetInstance().CasperService;
     }
     
-    
     [Given(@"that the state_get_account_info RCP method is invoked against nctl")]
     public async Task GivenThatTheStateGetAccountInfoRcpMethodIsInvokedAgainstNctl() {
         WriteLine("that the state_get_account_info RCP method is invoked against nctl");
@@ -39,7 +42,6 @@ public class StateGetAccountInfoStepDefinitions {
 
         _contextMap.Add(StepConstants.STATE_ACCOUNT_INFO, stateAccountInfo);
         
-
     }
 
     [Then(@"a valid state_get_account_info_result is returned")]
@@ -127,8 +129,7 @@ public class StateGetAccountInfoStepDefinitions {
         var userAccountJson = _nctl.GetUserAccount(1);
         Assert.That(stateAccountInfo.Parse().Account.NamedKeys.Count, 
             Is.EqualTo(userAccountJson["stored_value"]!["Account"]!["named_keys"]!.AsArray().Count));
-        
-        
+
     }
 
     private static string GetUserOneHexPublicKey() {
