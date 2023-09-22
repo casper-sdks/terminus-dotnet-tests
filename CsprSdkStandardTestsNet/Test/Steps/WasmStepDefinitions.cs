@@ -47,7 +47,7 @@ public class WasmStepDefinitions {
         WriteLine("the wasm is loaded as from the file system");
 
         var wasmBytes = File.ReadAllBytes(_contextMap.Get<string>(StepConstants.WASM_PATH));
-        // Assert.That(wasmBytes.Length, Is.EqualTo(189336));
+        Assert.That(wasmBytes.Length, Is.EqualTo(189336));
         
         var chainName = "casper-net-1";
         var payment = BigInteger.Parse("200000000000");
@@ -73,6 +73,9 @@ public class WasmStepDefinitions {
             new ("token_symbol", CLValue.String(tokenSymbol)), 
             new ("token_total_supply", CLValue.U256(tokenTotalSupply)) 
         };
+        
+        // FAIL
+        // Currently can't add a list of NamedArgs to a Contract Deploy
         
         var deploy = DeployTemplates.ContractDeploy(
             wasmBytes,
@@ -101,6 +104,10 @@ public class WasmStepDefinitions {
             true,
             new CancellationTokenSource(TimeSpan.FromSeconds(300)).Token);
        
+        //FAIL
+        //The erc20 contract fails to deploy
+        //The test contract, counter-define.wasm from the SDK unit tests deploys successfully
+
         Assert.That(deployData, Is.Not.Null);
         Assert.That(deployData.Parse().Deploy, Is.Not.Null);
         Assert.That(deployData!.Parse().ExecutionResults[0].IsSuccess);
@@ -142,4 +149,11 @@ public class WasmStepDefinitions {
     public void WhenTheTheContractIsInvokedByNameAndVersionWithATransferAmountOf(string name, string amount) {
         WriteLine("the the contract is invoked by name {0} and version with a transfer amount of {1}", name, amount);
     }
+
+    [Then(@"the contract dictionary item ""(.*)"" is a ""(.*)"" with a value of ""(.*)"" and bytes of ""(.*)""")]
+    public void ThenTheContractDictionaryItemIsAWithAValueOfAndBytesOf(string dictionary, string type, string value, string bytes) {
+        WriteLine("the contract dictionary item {0} is a {1} with a value of {2} and bytes of {3}", dictionary, type, value, bytes);
+        
+    }
+    
 }
