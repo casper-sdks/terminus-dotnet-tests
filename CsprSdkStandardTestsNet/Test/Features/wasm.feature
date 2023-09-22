@@ -1,7 +1,7 @@
 Feature: wasm operations
 
     Scenario: Read wasm, deploy and invoke
-        Given that a smart contract "counter-define.wasm" is located in the "contracts" folder
+        Given that a smart contract "erc20.wasm" is located in the "contracts" folder
         When the wasm is loaded as from the file system
         And the wasm has been successfully deployed
         Then the account named keys contain the "ERC20" name
