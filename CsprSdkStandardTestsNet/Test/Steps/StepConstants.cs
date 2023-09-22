@@ -43,5 +43,6 @@ public static class StepConstants {
     public const string CLVALUES = "clValues";
     public const string SDK_ERA_SUMMARY = "sdkEraSummary";
     public const string NODE_ERA_SUMMARY = "nodeEraSummary";
+    public const string FAUCET_PRIVATE_KEY = "faucetPrivateKey";
     
 }
