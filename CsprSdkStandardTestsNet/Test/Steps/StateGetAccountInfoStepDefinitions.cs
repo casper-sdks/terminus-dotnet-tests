@@ -96,9 +96,12 @@ public class StateGetAccountInfoStepDefinitions {
         var stateAccountInfo = _contextMap.Get<RpcResponse<GetAccountInfoResult>>(StepConstants.STATE_ACCOUNT_INFO);
         
         Assert.That(stateAccountInfo.Parse().MerkleProof, Is.Not.Null);
-        
-        // assertThat(stateAccountInfo.getMerkelProof(), is(isValidMerkleProof(nctl.getAccountMerkelProof(1))));
-        
+
+        var merkleProof = _nctl.GetAccountMerkelProof(1);
+
+        Assert.That(stateAccountInfo.Parse().MerkleProof.Length,
+            Is.EqualTo(int.Parse(merkleProof.Split(" ")[0][1..])));
+
     }
 
     [Then(@"the state_get_account_info_result contain a valid associated keys")]
@@ -108,7 +111,7 @@ public class StateGetAccountInfoStepDefinitions {
 
         var expectedAccountHash = _nctl.GetAccountHash(1);
         
-        Assert.That(stateAccountInfo.Parse().Account.AssociatedKeys.First().AccountHash.ToString().ToUpper(),
+        Assert.That(stateAccountInfo.Parse().Account.AssociatedKeys.First().AccountHash.ToString()!.ToUpper(),
             Is.EqualTo(expectedAccountHash.ToUpper()));
         
         Assert.That(stateAccountInfo.Parse().Account.AssociatedKeys.First().Weight, Is.EqualTo(1));
@@ -123,7 +126,7 @@ public class StateGetAccountInfoStepDefinitions {
 
         var userAccountJson = _nctl.GetUserAccount(1);
         Assert.That(stateAccountInfo.Parse().Account.NamedKeys.Count, 
-            Is.EqualTo(userAccountJson["stored_value"]!["Account"]!["named_keys"]));
+            Is.EqualTo(userAccountJson["stored_value"]!["Account"]!["named_keys"]!.AsArray().Count));
         
         
     }
@@ -138,13 +141,5 @@ public class StateGetAccountInfoStepDefinitions {
         return key.PublicKey.ToAccountHex();
 
     }
-
-    // private static string IsValidMerkleProof(string expectedNctlMerkelProof) {
-    //     
-    //     
-    //     
-    //     
-    // }
-    
     
 }
