@@ -76,7 +76,6 @@ public class WasmStepDefinitions {
         
         // FAIL
         // Currently can't add a list of NamedArgs to a Contract Deploy
-        
         var deploy = DeployTemplates.ContractDeploy(
             wasmBytes,
             faucetKey.PublicKey,
@@ -107,7 +106,6 @@ public class WasmStepDefinitions {
         //FAIL
         //The erc20 contract fails to deploy
         //The test contract, counter-define.wasm from the SDK unit tests deploys successfully
-
         Assert.That(deployData, Is.Not.Null);
         Assert.That(deployData.Parse().Deploy, Is.Not.Null);
         Assert.That(deployData!.Parse().ExecutionResults[0].IsSuccess);
@@ -117,43 +115,49 @@ public class WasmStepDefinitions {
     [Then(@"the account named keys contain the ""(.*)"" name")]
     public void ThenTheAccountNamedKeysContainTheName(string name) {
         WriteLine("the account named keys contain the {0} name", name);
+        throw new NotImplementedException();
     }
 
     [Then(@"the contract data ""(.*)"" is a ""(.*)"" with a value of ""(.*)"" and bytes of ""(.*)""")]
     public void ThenTheContractDataIsAWithAValueOfAndBytesOf(string data, string type, string value, string bytes) {
         WriteLine("the contract data {0} is a {1} with a value of {2} and bytes of {3}", data, type, value, bytes);
-        
+        throw new NotImplementedException();
     }
 
     [When(@"the contract entry point is invoked by hash with a transfer amount of ""(.*)""")]
     public void WhenTheContractEntryPointIsInvokedByHashWithATransferAmountOf(string amount) {
         WriteLine("the contract entry point is invoked by hash with a transfer amount of {0}", amount);
+        throw new NotImplementedException();
     }
 
     [Then(@"the contract invocation deploy is successful")]
     public void ThenTheContractInvocationDeployIsSuccessful() {
         WriteLine("the contract invocation deploy is successful");
+        throw new NotImplementedException();
     }
 
     [When(@"the the contract is invoked by name ""(.*)"" and a transfer amount of ""(.*)""")]
     public void WhenTheTheContractIsInvokedByNameAndATransferAmountOf(string name, string amount) {
         WriteLine("the the contract is invoked by name {0} and a transfer amount of {1}", name, amount);
+        throw new NotImplementedException();
     }
 
     [When(@"the the contract is invoked by hash and version with a transfer amount of ""(.*)""")]
     public void WhenTheTheContractIsInvokedByHashAndVersionWithATransferAmountOf(string amount) {
         WriteLine("the the contract is invoked by hash and version with a transfer amount of {0}", amount);
+        throw new NotImplementedException();
     }
 
     [When(@"the the contract is invoked by name ""(.*)"" and version with a transfer amount of ""(.*)""")]
     public void WhenTheTheContractIsInvokedByNameAndVersionWithATransferAmountOf(string name, string amount) {
         WriteLine("the the contract is invoked by name {0} and version with a transfer amount of {1}", name, amount);
+        throw new NotImplementedException();
     }
 
     [Then(@"the contract dictionary item ""(.*)"" is a ""(.*)"" with a value of ""(.*)"" and bytes of ""(.*)""")]
     public void ThenTheContractDictionaryItemIsAWithAValueOfAndBytesOf(string dictionary, string type, string value, string bytes) {
         WriteLine("the contract dictionary item {0} is a {1} with a value of {2} and bytes of {3}", dictionary, type, value, bytes);
-        
+        throw new NotImplementedException();
     }
     
 }
