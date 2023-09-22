@@ -16,6 +16,17 @@ public partial class Nctl {
     public Nctl(string dockerName) {
         _dockerName = dockerName;
     }
+    public string GetAccountMerkelProof(int userId) {
+
+        var node = GetUserAccount(userId);
+        var merkleProof = node["merkle_proof"];
+        
+        Assert.That(merkleProof, Is.Not.Null);
+        Assert.That(merkleProof.ToString().StartsWith("["), Is.True);
+
+        return merkleProof.ToString();
+        
+    }
 
     public string GetAccountMainPurse(int userId) {
         
@@ -44,6 +55,10 @@ public partial class Nctl {
     
     public JsonNode GetNodeStatus(int nodeId) {
         return Execute("view_node_status.sh", "node=" + nodeId, ParseJsonWithPreAmble);
+    }
+    
+    public JsonNode GetUserAccount(int userId) {
+        return Execute("view_user_account.sh", "user=" + userId, ParseJsonWithPreAmble);
     }
     
     public JsonNode GetChainBlock(string blockHash) {
