@@ -44,5 +44,7 @@ public static class StepConstants {
     public const string SDK_ERA_SUMMARY = "sdkEraSummary";
     public const string NODE_ERA_SUMMARY = "nodeEraSummary";
     public const string FAUCET_PRIVATE_KEY = "faucetPrivateKey";
+    public const string INFO_GET_CHAINSPEC_SDK = "infoGetChainSpecSdk";
+    public const string INFO_GET_CHAINSPEC_NCTL = "infoGetChainSpecNctl";
     
 }
