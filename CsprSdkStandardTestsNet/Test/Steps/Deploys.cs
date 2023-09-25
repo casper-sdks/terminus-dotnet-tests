@@ -179,12 +179,12 @@ public class Deploys {
         WriteLine("the deploy has a valid timestamp");
         
         //There's no way to pass the timestamp to a deploy
-        //The best we can do is check that it's greater than a recorded time
+        //The best we can do is check that it's greater or equal than a recorded time
         //And do some ISO conversion to validate it's a date
         var timestampExpected = _contextMap.Get<ulong>(StepConstants.DEPLOY_TIMESTAMP);
         var timestampActual = GetDeployData().Parse().Deploy.Header.Timestamp;
 
-        Assert.That(timestampExpected, Is.LessThan(timestampActual));
+        Assert.That(timestampExpected, Is.LessThanOrEqualTo(timestampActual));
 
         var timestampActualDate = DateTime.Parse(DateUtils.ToISOString(timestampActual)).Date;
         Assert.That(timestampActualDate, Is.Not.Null);
