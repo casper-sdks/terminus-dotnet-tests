@@ -31,7 +31,11 @@ public class SimpleRcpClient {
     
     public Task<JsonNode> GetValidatorChanges(){
         return Rcp("info_get_validator_changes", "[]");
-}
+    }
+
+    public Task<JsonNode> GetInfoGetChainspec(){
+        return Rcp("info_get_chainspec", "[]");
+    }
     
     private async Task<JsonNode> Rcp(string method, string _params) {
 
