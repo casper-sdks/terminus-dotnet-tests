@@ -10,6 +10,9 @@ using static System.Console;
 
 namespace CsprSdkStandardTestsNet.Test.Steps;
 
+/**
+ * Info Get Chain Spec steps
+ */
 [Binding]
 public class InfoGetChainSpecStepDefinitions {
     

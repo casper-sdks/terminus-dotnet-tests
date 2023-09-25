@@ -37,6 +37,11 @@ public class SimpleRcpClient {
         return Rcp("info_get_chainspec", "[]");
     }
     
+    public Task<JsonNode> GetBalance(string stateRootHash, string purseUref){
+        return Rcp("state_get_balance", 
+            $"{{\"state_root_hash\":\"{stateRootHash}\",\"purse_uref\":\"{purseUref}\"}}");
+    }
+    
     private async Task<JsonNode> Rcp(string method, string _params) {
 
         var client = new HttpClient();
