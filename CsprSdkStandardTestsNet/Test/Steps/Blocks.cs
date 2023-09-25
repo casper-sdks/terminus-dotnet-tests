@@ -65,11 +65,7 @@ public class Blocks {
         }
 
         Assert.That(latestBlockSdk.Body, Is.Not.Null);
-        Assert.That(latestBlockSdk.Body.Proposer.ToString()!.ToLower(),
-            Is.EqualTo(latestBlockNode["body"]!["proposer"]?.ToString().ToLower()));
-
-        Assert.That(latestBlockSdk.Body, Is.Not.Null);
-        Assert.That(latestBlockSdk.Body.Proposer.ToString()!.ToLower(),
+        Assert.That(latestBlockSdk.Body.Proposer.PublicKey.ToString()!.ToLower(),
             Is.EqualTo(latestBlockNode["body"]!["proposer"]?.ToString().ToLower()));
 
         if (((JsonArray)latestBlockNode["body"]["deploy_hashes"])!.Count == 0)
@@ -265,13 +261,15 @@ public class Blocks {
     }
 
     [Then(@"request the block transfer")]
-    public void ThenRequestTheBlockTransfer() {
+    public async Task ThenRequestTheBlockTransfer() {
         WriteLine("request the block transfer");
 
         var deployResult = (RpcResponse<PutDeployResult>)_contextMap["deployResult"];
         
         var sseBlockAdded = new BlockAddedTask();
         sseBlockAdded.HasTransferHashWithin(deployResult.Parse().DeployHash, 300);
+        
+        _contextMap.Add("transferBlockSdk", await GetCasperService().GetBlockTransfers());
         
     }
 
