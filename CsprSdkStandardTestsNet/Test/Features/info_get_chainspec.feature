@@ -5,4 +5,5 @@ Feature: info_get_chainspec
         And that info_get_chainspec is invoked against the sdk
         Then the sdk chain bytes equals the nctl chain bytes
         And the sdk genesis bytes equals the nctl genesis bytes
+        And the sdk global state bytes equals the nctl global state bytes
                 

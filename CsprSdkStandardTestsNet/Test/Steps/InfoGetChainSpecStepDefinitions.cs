@@ -68,5 +68,16 @@ public class InfoGetChainSpecStepDefinitions {
             Is.EqualTo(chainSpecNctl["result"]!["chainspec_bytes"]!["maybe_genesis_accounts_bytes"]!.ToString().ToUpper()));
         
     }
-    
+
+    [Then(@"the sdk global state bytes equals the nctl global state bytes")]
+    public void ThenTheSdkGlobalStateBytesEqualsTheNctlGlobalStateBytes() {
+        WriteLine("the sdk global state bytes equals the nctl global state bytes");
+        
+        var chainSpecNctl = _contextMap.Get<JsonNode>(StepConstants.INFO_GET_CHAINSPEC_NCTL);
+        var chainSpecSdk = _contextMap.Get<RpcResponse<GetChainspecResult>>(StepConstants.INFO_GET_CHAINSPEC_SDK);
+        
+        Assert.That(chainSpecSdk.Parse().ChainspecBytes.MaybeGlobalStateBytes.ToUpper(),
+            Is.EqualTo(chainSpecNctl["result"]!["chainspec_bytes"]!["maybe_global_state_bytes"]!.ToString().ToUpper()));
+        
+    }
 }
