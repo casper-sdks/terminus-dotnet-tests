@@ -21,21 +21,9 @@ public class InfoGetChainSpecStepDefinitions {
         return CasperClientProvider.GetInstance().CasperService;
     }
 
-    [Given(@"that the info_get_chainspec is invoked against nctl")]
-    public async Task GivenThatTheInfoGetChainspecIsInvokedAgainstNctl() {
-        WriteLine("that the info_get_chainspec is invoked against nctl");
-        
-        var chainSpecNctl = await _simpleRcpClient.GetInfoGetChainspec();
-
-        Assert.That(chainSpecNctl, Is.Not.Null);
-
-        _contextMap.Add(StepConstants.INFO_GET_CHAINSPEC_NCTL, chainSpecNctl);
-        
-    }
-
-    [Given(@"that info_get_chainspec is invoked against the sdk")]
-    public async Task GivenThatInfoGetChainspecIsInvokedAgainstTheSdk() {
-        WriteLine("that info_get_chainspec is invoked against the sdk");
+    [Given(@"that info_get_chainspec is invoked against the SDK")]
+    public async Task GivenThatInfoGetChainspecIsInvokedAgainstTheSDK() {
+        WriteLine("that info_get_chainspec is invoked against the SDK");
         
         var chainSpecSdk = await GetCasperService().GetChainspec();
 
@@ -45,39 +33,60 @@ public class InfoGetChainSpecStepDefinitions {
 
     }
 
-    [Then(@"the sdk chain bytes equals the nctl chain bytes")]
-    public void ThenTheSdkChainBytesEqualsTheNctlChainBytes() {
-        WriteLine("the sdk chain bytes equals the nctl chain bytes");
+    [Given(@"that the info_get_chainspec is invoked using a simple RPC json request")]
+    public async Task GivenThatTheInfoGetChainspecIsInvokedUsingASimpleRpcJsonRequest() {
+        WriteLine("that the info_get_chainspec is invoked using a simple RPC json request");
+        
+        var chainSpecNctl = await _simpleRcpClient.GetInfoGetChainspec();
+
+        Assert.That(chainSpecNctl, Is.Not.Null);
+
+        _contextMap.Add(StepConstants.INFO_GET_CHAINSPEC_NCTL, chainSpecNctl);
+    }
+
+    [Then(@"the SDK chain bytes equals the RPC json request chain bytes")]
+    public void ThenTheSdkChainBytesEqualsTheRpcJsonRequestChainBytes() {
+        WriteLine("the SDK chain bytes equals the RPC json request chain bytes");
 
         var chainSpecNctl = _contextMap.Get<JsonNode>(StepConstants.INFO_GET_CHAINSPEC_NCTL);
         var chainSpecSdk = _contextMap.Get<RpcResponse<GetChainspecResult>>(StepConstants.INFO_GET_CHAINSPEC_SDK);
 
         Assert.That(chainSpecSdk.Parse().ChainspecBytes.ChainspecBytes.ToUpper(),
             Is.EqualTo(chainSpecNctl["result"]!["chainspec_bytes"]!["chainspec_bytes"]!.ToString().ToUpper()));
-        
+
     }
 
-    [Then(@"the sdk genesis bytes equals the nctl genesis bytes")]
-    public void ThenTheSdkGenesisBytesEqualsTheNctlGenesisBytes() {
-        WriteLine("the sdk genesis bytes equals the nctl genesis bytes");
+    [Then(@"the SDK genesis bytes equals the RPC json request genesis bytes")]
+    public void ThenTheSdkGenesisBytesEqualsTheRpcJsonRequestGenesisBytes() {
+        WriteLine("the SDK genesis bytes equals the RPC json request genesis bytes");
 
         var chainSpecNctl = _contextMap.Get<JsonNode>(StepConstants.INFO_GET_CHAINSPEC_NCTL);
         var chainSpecSdk = _contextMap.Get<RpcResponse<GetChainspecResult>>(StepConstants.INFO_GET_CHAINSPEC_SDK);
-        
-        Assert.That(chainSpecSdk.Parse().ChainspecBytes.MaybeGenesisAccountsBytes.ToUpper(),
-            Is.EqualTo(chainSpecNctl["result"]!["chainspec_bytes"]!["maybe_genesis_accounts_bytes"]!.ToString().ToUpper()));
+
+        if (chainSpecSdk.Parse().ChainspecBytes.MaybeGenesisAccountsBytes == null) {
+            Assert.That(chainSpecNctl["result"]!["chainspec_bytes"]!["maybe_genesis_accounts_bytes"], Is.EqualTo(null));
+        }
+        else {
+            Assert.That(chainSpecSdk.Parse().ChainspecBytes.MaybeGenesisAccountsBytes.ToUpper(),
+                Is.EqualTo(chainSpecNctl["result"]!["chainspec_bytes"]!["maybe_genesis_accounts_bytes"]!.ToString().ToUpper()));
+        }
         
     }
 
-    [Then(@"the sdk global state bytes equals the nctl global state bytes")]
-    public void ThenTheSdkGlobalStateBytesEqualsTheNctlGlobalStateBytes() {
-        WriteLine("the sdk global state bytes equals the nctl global state bytes");
+    [Then(@"the SDK global state bytes equals the RPC json request global state bytes")]
+    public void ThenTheSdkGlobalStateBytesEqualsTheRpcJsonRequestGlobalStateBytes() {
+        WriteLine("the SDK global state bytes equals the RPC json request global state bytes");
         
         var chainSpecNctl = _contextMap.Get<JsonNode>(StepConstants.INFO_GET_CHAINSPEC_NCTL);
         var chainSpecSdk = _contextMap.Get<RpcResponse<GetChainspecResult>>(StepConstants.INFO_GET_CHAINSPEC_SDK);
-        
-        Assert.That(chainSpecSdk.Parse().ChainspecBytes.MaybeGlobalStateBytes.ToUpper(),
-            Is.EqualTo(chainSpecNctl["result"]!["chainspec_bytes"]!["maybe_global_state_bytes"]!.ToString().ToUpper()));
+
+        if (chainSpecSdk.Parse().ChainspecBytes.MaybeGlobalStateBytes == null) {
+            Assert.That(chainSpecNctl["result"]!["chainspec_bytes"]!["maybe_global_state_bytes"], Is.EqualTo(null));
+        }
+        else {
+            Assert.That(chainSpecSdk.Parse().ChainspecBytes.MaybeGlobalStateBytes.ToUpper(),
+                Is.EqualTo(chainSpecNctl["result"]!["chainspec_bytes"]!["maybe_global_state_bytes"]!.ToString().ToUpper()));
+        }
         
     }
 }
