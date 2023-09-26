@@ -43,7 +43,7 @@ public class SimpleRcpClient {
     }
     public Task<JsonNode> QueryBalance(string purseIdentifierName, string identifier){
         return Rcp("query_balance", 
-            $"{{\"purse_identifier\":\"{purseIdentifierName}\":\"{identifier}\":\"\"}}");
+            $"{{\"purse_identifier\":{{\"{purseIdentifierName}\":\"{identifier}\"}}}}");
     }
     
     private async Task<JsonNode> Rcp(string method, string _params) {

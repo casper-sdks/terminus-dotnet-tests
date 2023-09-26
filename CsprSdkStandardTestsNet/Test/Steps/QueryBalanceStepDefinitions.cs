@@ -31,8 +31,6 @@ public class QueryBalanceStepDefinitions {
     public async Task GivenThatAQueryBalanceIsObtainedByMainPursePublicKey() {
         WriteLine("that a query balance is obtained by main purse public key");
         
-        var stateRootHash = await GetCasperService().GetStateRootHash();
-        
         var faucetPem = AssetUtils.GetFaucetAsset(1, "secret_key.pem");
         Assert.That(faucetPem, Is.Not.Null);
         
@@ -40,11 +38,13 @@ public class QueryBalanceStepDefinitions {
         Assert.That(faucetKey, Is.Not.Null);
         Assert.That(faucetKey.PublicKey, Is.Not.Null);
 
-        var balanceData = await GetCasperService().GetAccountBalance(faucetKey.PublicKey, stateRootHash);
+        _contextMap.Add(StepConstants.FAUCET_PRIVATE_KEY, faucetKey);
+        
+        var balanceData = await GetCasperService().GetAccountBalance(faucetKey.PublicKey);
 
         _contextMap.Add(StepConstants.BALANCE_DATA, balanceData);
 
-        var json = await _simpleRcpClient.GetBalance("main_purse_under_public_key", faucetKey.PublicKey.ToString());
+        var json = await _simpleRcpClient.QueryBalance("main_purse_under_public_key", faucetKey.PublicKey.ToString());
 
         _contextMap.Add(StepConstants.BALANCE_DATA_RCP, json);
     }
@@ -74,19 +74,47 @@ public class QueryBalanceStepDefinitions {
         var balanceData = _contextMap.Get<RpcResponse<GetBalanceResult>>(StepConstants.BALANCE_DATA);
         var json = _contextMap.Get<JsonNode>(StepConstants.BALANCE_DATA_RCP);
 
-        Assert.That(balanceData.Parse().BalanceValue.ToString(), Is.EqualTo(json["result"]!["balance"]!.ToString()));
+        Assert.That(balanceData.Parse().BalanceValue.ToString(), 
+            Is.EqualTo(json["result"]!["balance"]!.ToString()));
     }
 
     [Given(@"that a query balance is obtained by main purse account hash")]
-    public void GivenThatAQueryBalanceIsObtainedByMainPurseAccountHash() {
+    public async Task GivenThatAQueryBalanceIsObtainedByMainPurseAccountHash() {
         WriteLine("that a query balance is obtained by main purse account hash");
         
+        var account = _contextMap.Get<KeyPair>(StepConstants.FAUCET_PRIVATE_KEY).PublicKey.ToAccountHex();
+
+        var accountHash = (AccountHashKey)GlobalStateKey.FromString("account-hash-" + account);
+
+        var balanceData = await GetCasperService().GetAccountBalance(accountHash);
+
+        _contextMap.Add(StepConstants.BALANCE_DATA, balanceData);
+
+        var json = await _simpleRcpClient.QueryBalance("main_purse_under_account_hash", accountHash.ToString());
+
+        _contextMap.Add(StepConstants.BALANCE_DATA_RCP, json);
+
     }
 
     [Given(@"that a query balance is obtained by main purse uref")]
-    public void GivenThatAQueryBalanceIsObtainedByMainPurseUref() {
-        WriteLine("that a query balance is obtained by main purse account hash");
+    public async Task GivenThatAQueryBalanceIsObtainedByMainPurseUref() {
+        WriteLine("that a query balance is obtained by main purse uref");
+
+        var block = await GetCasperService().GetBlock();
+
+        var accountInfo = await GetCasperService().GetAccountInfo(
+            _contextMap.Get<KeyPair>(StepConstants.FAUCET_PRIVATE_KEY).PublicKey, block.Parse().Block.Hash);
+
+        var purseUref = accountInfo.Parse().Account.MainPurse;
         
+        var balanceData = await GetCasperService().GetAccountBalance(purseUref);
+
+        _contextMap.Add(StepConstants.BALANCE_DATA, balanceData);
+
+        var json = await _simpleRcpClient.QueryBalance("purse_uref", purseUref.ToString());
+
+        _contextMap.Add(StepConstants.BALANCE_DATA_RCP, json);
+
     }
     
 }
