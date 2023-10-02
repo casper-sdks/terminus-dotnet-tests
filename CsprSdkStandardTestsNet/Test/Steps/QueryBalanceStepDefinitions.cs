@@ -1,4 +1,8 @@
+using System;
+using System.Linq;
+using System.Numerics;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using Casper.Network.SDK;
 using Casper.Network.SDK.JsonRpc;
@@ -34,19 +38,11 @@ public class QueryBalanceStepDefinitions {
     public async Task GivenThatAQueryBalanceIsObtainedByMainPursePublicKey() {
         WriteLine("that a query balance is obtained by main purse public key");
         
-        var faucetPem = AssetUtils.GetFaucetAsset(1, "secret_key.pem");
-        Assert.That(faucetPem, Is.Not.Null);
         
-        var faucetKey = KeyPair.FromPem(faucetPem);
-        Assert.That(faucetKey, Is.Not.Null);
-        Assert.That(faucetKey.PublicKey, Is.Not.Null);
-
-        _contextMap.Add(StepConstants.FAUCET_PRIVATE_KEY, faucetKey);
-        
-        var balanceData = await GetCasperService().GetAccountBalance(faucetKey.PublicKey);
+        var balanceData = await GetCasperService().GetAccountBalance(GetFaucetKey());
         _contextMap.Add(StepConstants.BALANCE_DATA, balanceData);
 
-        var json = await _simpleRcpClient.QueryBalance("main_purse_under_public_key", faucetKey.PublicKey.ToString());
+        var json = await _simpleRcpClient.QueryBalance("main_purse_under_public_key",  GetFaucetKey().ToString());
         _contextMap.Add(StepConstants.BALANCE_DATA_RCP, json);
         
     }
@@ -83,20 +79,12 @@ public class QueryBalanceStepDefinitions {
     [Given(@"that a query balance is obtained by main purse account hash")]
     public async Task GivenThatAQueryBalanceIsObtainedByMainPurseAccountHash() {
         WriteLine("that a query balance is obtained by main purse account hash");
-        
-        var faucetPem = AssetUtils.GetFaucetAsset(1, "secret_key.pem");
-        Assert.That(faucetPem, Is.Not.Null);
-        
-        var faucetKey = KeyPair.FromPem(faucetPem);
-        Assert.That(faucetKey, Is.Not.Null);
-        Assert.That(faucetKey.PublicKey, Is.Not.Null);
 
-        _contextMap.Add(StepConstants.FAUCET_PRIVATE_KEY, faucetKey);
-        var account = _contextMap.Get<KeyPair>(StepConstants.FAUCET_PRIVATE_KEY).PublicKey.ToAccountHex();
+        var account = GetFaucetKey();
         
-        var accountHash = (AccountHashKey)GlobalStateKey.FromString("account-hash-" + account);
+        var accountHash = GlobalStateKey.FromString("account-hash-" + account);
 
-        var balanceData = await GetCasperService().GetAccountBalance(accountHash);
+        var balanceData = await GetCasperService().GetAccountBalance((AccountHashKey)accountHash);
         _contextMap.Add(StepConstants.BALANCE_DATA, balanceData);
 
         var json = await _simpleRcpClient.QueryBalance("main_purse_under_account_hash", accountHash.ToString());
@@ -108,19 +96,8 @@ public class QueryBalanceStepDefinitions {
     public async Task GivenThatAQueryBalanceIsObtainedByMainPurseUref() {
         WriteLine("that a query balance is obtained by main purse uref");
         
-        var faucetPem = AssetUtils.GetFaucetAsset(1, "secret_key.pem");
-        Assert.That(faucetPem, Is.Not.Null);
-        
-        var faucetKey = KeyPair.FromPem(faucetPem);
-        Assert.That(faucetKey, Is.Not.Null);
-        Assert.That(faucetKey.PublicKey, Is.Not.Null);
-
-        _contextMap.Add(StepConstants.FAUCET_PRIVATE_KEY, faucetKey);
-        
-
         var block = await GetCasperService().GetBlock();
-        var accountInfo = await GetCasperService().GetAccountInfo(
-            _contextMap.Get<KeyPair>(StepConstants.FAUCET_PRIVATE_KEY).PublicKey, block.Parse().Block.Hash);
+        var accountInfo = await GetCasperService().GetAccountInfo(GetFaucetKey(), block.Parse().Block.Hash);
 
         var purseUref = accountInfo.Parse().Account.MainPurse;
         var balanceData = await GetCasperService().GetAccountBalance(purseUref);
@@ -130,5 +107,116 @@ public class QueryBalanceStepDefinitions {
         _contextMap.Add(StepConstants.BALANCE_DATA_RCP, json);
 
     }
+
+    [When(@"a transfer of (.*) is made to user-(.*)'s purse")]
+    public async Task WhenATransferOfIsMadeToUsersPurse(string amount, int user) {
+        WriteLine("a transfer of {0} is made to user-{1}'s purse", amount, user);
+
+        var initialBlock = await GetCasperService().GetBlock();
+        var initialStateRootHash = await GetCasperService().GetStateRootHash();
+        var faucetKey = GetFaucetKey();
+        var userPublicKey = GetUserPublicKey(user);
+
+        var initialBalance = await GetCasperService().GetAccountBalance(userPublicKey);
+        
+        var deploy = DeployTemplates.StandardTransfer(
+            faucetKey,
+            userPublicKey,
+            BigInteger.Parse(amount),
+            100_000_000,
+            "casper-net-1",
+            null,
+            1,
+            (ulong)TimeSpan.FromMinutes(_contextMap.Get<ulong>(StepConstants.TTL)).TotalMilliseconds);
+        
+        deploy.Sign(GetFaucetKeyPair());
+        
+        var putResponse = await GetCasperService().PutDeploy(deploy);
+
+        RpcResponse<GetDeployResult> deployData = await GetCasperService().GetDeploy(
+            putResponse.Parse().DeployHash, 
+            true,
+            new CancellationTokenSource(TimeSpan.FromSeconds(300)).Token);
+
+        Assert.That(deployData.Parse().ExecutionResults, Is.GreaterThan(0));
+        Assert.That(deployData!.Parse().ExecutionResults.First().IsSuccess);
+        Assert.That(deployData!.Parse().ExecutionResults.First().BlockHash, Is.Not.EqualTo(initialBlock.Parse().Block.Hash));
+
+    }
+
+    [When(@"that a query balance is obtained by user-(.*)'s main purse public and latest block identifier")]
+    public void WhenThatAQueryBalanceIsObtainedByUsersMainPursePublicAndLatestBlockIdentifier(int user) {
+        WriteLine("that a query balance is obtained by user-{0}'s main purse public and latest block identifier", user);
+        
+    }
+
+    [Then(@"the balance includes the transferred amount")]
+    public void ThenTheBalanceIncludesTheTransferredAmount() {
+        WriteLine("the balance includes the transferred amount");
+        
+    }
+
+    [When(@"that a query balance is obtained by user-(.*)'s main purse public key and previous block identifier")]
+    public void WhenThatAQueryBalanceIsObtainedByUsersMainPursePublicKeyAndPreviousBlockIdentifier(int user) {
+        WriteLine("that a query balance is obtained by user-{0}'s main purse public key and previous block identifier", user);
+        
+    }
+
+    [Then(@"the balance is the pre transfer amount")]
+    public void ThenTheBalanceIsThePreTransferAmount() {
+        WriteLine("the balance is the pre transfer amount");
+        
+    }
+
+    [When(@"that a query balance is obtained by user-(.*)'s main purse public and latest state root hash identifier")]
+    public void WhenThatAQueryBalanceIsObtainedByUsersMainPursePublicAndLatestStateRootHashIdentifier(int user) {
+        WriteLine("that a query balance is obtained by user-{0}'s main purse public and latest state root hash identifier", user);
+        
+    }
+
+    [When(@"that a query balance is obtained by user(.*)'s main purse public key and previous state root hash identifier")]
+    public void WhenThatAQueryBalanceIsObtainedByUsersMainPursePublicKeyAndPreviousStateRootHashIdentifier(int user) {
+        WriteLine(
+            "that a query balance is obtained by user-{0}'s main purse public key and previous state root hash identifier",
+            user);
+
+    }
     
+    private PublicKey GetFaucetKey() {
+        
+        var faucetPem = AssetUtils.GetFaucetAsset(1, "secret_key.pem");
+        Assert.That(faucetPem, Is.Not.Null);
+        
+        var faucetKey = KeyPair.FromPem(faucetPem);
+        Assert.That(faucetKey, Is.Not.Null);
+        Assert.That(faucetKey.PublicKey, Is.Not.Null);
+
+        return faucetKey.PublicKey;
+
+    }
+
+    private KeyPair GetFaucetKeyPair() {
+        
+        var faucetPem = AssetUtils.GetFaucetAsset(1, "secret_key.pem");
+        Assert.That(faucetPem, Is.Not.Null);
+        
+        var faucetKey = KeyPair.FromPem(faucetPem);
+        Assert.That(faucetKey, Is.Not.Null);
+        Assert.That(faucetKey.PublicKey, Is.Not.Null);
+
+        return faucetKey;
+
+    }
+    
+    private static PublicKey GetUserPublicKey(int userId) {
+        var keyUrl = AssetUtils.GetUserKeyAsset(1, userId, "public_key.pem");
+        var key = KeyPair.FromPem(keyUrl);
+
+        Assert.IsNotNull(key);
+
+        return key.PublicKey;
+
+    }
+    
+   
 }
