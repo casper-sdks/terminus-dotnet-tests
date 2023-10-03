@@ -38,7 +38,6 @@ public class QueryBalanceStepDefinitions {
     public async Task GivenThatAQueryBalanceIsObtainedByMainPursePublicKey() {
         WriteLine("that a query balance is obtained by main purse public key");
         
-        
         var balanceData = await GetCasperService().GetAccountBalance(GetFaucetKey());
         _contextMap.Add(StepConstants.BALANCE_DATA, balanceData);
 
@@ -74,6 +73,7 @@ public class QueryBalanceStepDefinitions {
 
         Assert.That(balanceData.Parse().BalanceValue.ToString(), 
             Is.EqualTo(json["result"]!["balance"]!.ToString()));
+        
     }
 
     [Given(@"that a query balance is obtained by main purse account hash")]
@@ -81,7 +81,6 @@ public class QueryBalanceStepDefinitions {
         WriteLine("that a query balance is obtained by main purse account hash");
 
         var account = GetFaucetKey();
-        
         var accountHash = new AccountHashKey(account.GetAccountHash());
 
         var balanceData = await GetCasperService().GetAccountBalance(accountHash);
@@ -111,6 +110,8 @@ public class QueryBalanceStepDefinitions {
     [When(@"a transfer of (.*) is made to user-(.*)'s purse")]
     public async Task WhenATransferOfIsMadeToUsersPurse(string amount, int user) {
         WriteLine("a transfer of {0} is made to user-{1}'s purse", amount, user);
+        
+        _contextMap.Add(StepConstants.TRANSFER_AMOUNT, BigInteger.Parse(amount));
 
         var initialBlock = await GetCasperService().GetBlock();
         var initialStateRootHash = await GetCasperService().GetStateRootHash();
@@ -158,19 +159,36 @@ public class QueryBalanceStepDefinitions {
         var deployData = _contextMap.Get<RpcResponse<GetDeployResult>>(StepConstants.DEPLOY_RESULT);
         var userPublicKey = GetUserPublicKey(user);
         
-        var balanceData = await GetCasperService().GetAccountBalanceWithBlockHash(userPublicKey, deployData.Parse().ExecutionResults.First().BlockHash);
+        var queryBalanceData = await GetCasperService().GetAccountBalanceWithBlockHash(userPublicKey, 
+            deployData.Parse().ExecutionResults.First().BlockHash);
+        
+        _contextMap.Add(StepConstants.BALANCE_DATA, queryBalanceData);
 
     }
 
     [Then(@"the balance includes the transferred amount")]
     public void ThenTheBalanceIncludesTheTransferredAmount() {
         WriteLine("the balance includes the transferred amount");
+
+        var queryBalanceData = _contextMap.Get<RpcResponse<GetBalanceResult>>(StepConstants.BALANCE_DATA);
+        var initialBalance = _contextMap.Get<RpcResponse<GetBalanceResult>>(StepConstants.INITIAL_BALANCE);
+        var amount = _contextMap.Get<BigInteger>(StepConstants.TRANSFER_AMOUNT);
         
+        Assert.That(queryBalanceData.Parse().BalanceValue, Is.EqualTo(initialBalance.Parse().BalanceValue + amount));
+
     }
 
     [When(@"that a query balance is obtained by user-(.*)'s main purse public key and previous block identifier")]
-    public void WhenThatAQueryBalanceIsObtainedByUsersMainPursePublicKeyAndPreviousBlockIdentifier(int user) {
+    public async Task WhenThatAQueryBalanceIsObtainedByUsersMainPursePublicKeyAndPreviousBlockIdentifier(int user) {
         WriteLine("that a query balance is obtained by user-{0}'s main purse public key and previous block identifier", user);
+
+        var initialBlock = _contextMap.Get<RpcResponse<GetBlockResult>>(StepConstants.INITIAL_BLOCK);
+        var userPublicKey = GetUserPublicKey(user);
+
+        var queryBalanceData = await GetCasperService().GetAccountBalanceWithBlockHash(userPublicKey, 
+            initialBlock.Parse().Block.Hash);
+        
+        _contextMap.Add(StepConstants.BALANCE_DATA, queryBalanceData);
         
     }
 
@@ -178,23 +196,42 @@ public class QueryBalanceStepDefinitions {
     public void ThenTheBalanceIsThePreTransferAmount() {
         WriteLine("the balance is the pre transfer amount");
         
-    }
-
-    [When(@"that a query balance is obtained by user-(.*)'s main purse public and latest state root hash identifier")]
-    public void WhenThatAQueryBalanceIsObtainedByUsersMainPursePublicAndLatestStateRootHashIdentifier(int user) {
-        WriteLine("that a query balance is obtained by user-{0}'s main purse public and latest state root hash identifier", user);
+        var queryBalanceData = _contextMap.Get<RpcResponse<GetBalanceResult>>(StepConstants.BALANCE_DATA);
+        var initialBalance = _contextMap.Get<RpcResponse<GetBalanceResult>>(StepConstants.INITIAL_BALANCE);
+        
+        Assert.That(queryBalanceData.Parse().BalanceValue, Is.EqualTo(initialBalance.Parse().BalanceValue));
         
     }
 
-    [When(@"that a query balance is obtained by user(.*)'s main purse public key and previous state root hash identifier")]
-    public void WhenThatAQueryBalanceIsObtainedByUsersMainPursePublicKeyAndPreviousStateRootHashIdentifier(int user) {
+    [When(@"that a query balance is obtained by user-(.*)'s main purse public and latest state root hash identifier")]
+    public async Task WhenThatAQueryBalanceIsObtainedByUsersMainPursePublicAndLatestStateRootHashIdentifier(int user) {
+        WriteLine("that a query balance is obtained by user-{0}'s main purse public and latest state root hash identifier", user);
+        
+        var userPublicKey = GetUserPublicKey(user);
+        var stateRootHash = await GetCasperService().GetStateRootHash();
+        
+        Assert.That(stateRootHash, Is.Not.EqualTo(_contextMap.Get<string>(StepConstants.INITIAL_STATE_ROOT)));
+
+        var queryBalanceData = await GetCasperService().GetAccountBalance(userPublicKey, stateRootHash);
+        _contextMap.Add(StepConstants.BALANCE_DATA, queryBalanceData);
+        
+    }
+
+    [When(@"that a query balance is obtained by user-(.*)'s main purse public key and previous state root hash identifier")]
+    public async Task WhenThatAQueryBalanceIsObtainedByUsersMainPursePublicKeyAndPreviousStateRootHashIdentifier(int user) {
         WriteLine(
             "that a query balance is obtained by user-{0}'s main purse public key and previous state root hash identifier",
             user);
+        
+        var userPublicKey = GetUserPublicKey(user);
+        var initialStateRootHash = _contextMap.Get<string>(StepConstants.INITIAL_STATE_ROOT);
+        
+        var queryBalanceData = await GetCasperService().GetAccountBalance(userPublicKey, initialStateRootHash);
+        _contextMap.Add(StepConstants.BALANCE_DATA, queryBalanceData);
 
     }
     
-    private PublicKey GetFaucetKey() {
+    private static PublicKey GetFaucetKey() {
         
         var faucetPem = AssetUtils.GetFaucetAsset(1, "secret_key.pem");
         Assert.That(faucetPem, Is.Not.Null);
@@ -207,7 +244,7 @@ public class QueryBalanceStepDefinitions {
 
     }
 
-    private KeyPair GetFaucetKeyPair() {
+    private static KeyPair GetFaucetKeyPair() {
         
         var faucetPem = AssetUtils.GetFaucetAsset(1, "secret_key.pem");
         Assert.That(faucetPem, Is.Not.Null);
@@ -224,12 +261,10 @@ public class QueryBalanceStepDefinitions {
         var keyUrl = AssetUtils.GetUserKeyAsset(1, userId, "public_key.pem");
         
         var key = PublicKey.FromPem(keyUrl);
-
         Assert.IsNotNull(key);
 
         return key;
 
     }
     
-   
 }
