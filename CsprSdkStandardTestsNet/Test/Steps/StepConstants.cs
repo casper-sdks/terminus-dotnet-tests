@@ -50,5 +50,8 @@ public static class StepConstants {
     public const string ACCOUNT_HASH = "accountHash";
     public const string BALANCE_DATA = "balanceData";
     public const string BALANCE_DATA_RCP = "balanceDataRcp";
+    public const string INITIAL_STATE_ROOT = "initialStateRoot";
+    public const string INITIAL_BLOCK = "initialBlock";
+    public const string INITIAL_BALANCE = "initialBalance";
     
 }
