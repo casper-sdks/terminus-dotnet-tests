@@ -18,6 +18,10 @@ public class SimpleRcpClient {
         _hostname = hostname;
         _port = port;
     }
+
+    public Task<JsonNode> GetAuctionInfoByHash(string hash) {
+        return Rcp("state_get_auction_info", "[{\"Hash\":  \"" + hash + "\"}]");
+    }
     
     /**
      * Obtains the era summary

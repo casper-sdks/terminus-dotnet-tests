@@ -53,5 +53,6 @@ public static class StepConstants {
     public const string INITIAL_STATE_ROOT = "initialStateRoot";
     public const string INITIAL_BLOCK = "initialBlock";
     public const string INITIAL_BALANCE = "initialBalance";
+    public const string PARENT_HASH = "parentHash";
     
 }
