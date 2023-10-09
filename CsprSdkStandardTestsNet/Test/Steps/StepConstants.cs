@@ -34,6 +34,7 @@ public static class StepConstants {
     public const string STATE_ROOT_HASH = "stateRootHash";
     public const string STATUS_DATA = "statusData";
     public const string TRANSFER_AMOUNT = "transferAmount";
+    public const string TRANSFER_DEPLOY = "transferDeploy";
     public const string TRANSFER = "transfer";
     public const string PAYMENT_AMOUNT = "paymentAmount";
     public const string TTL = "ttl";

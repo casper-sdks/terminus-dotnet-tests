@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using Casper.Network.SDK.Types;
 using Casper.Network.SDK.Utils;
 using CsprSdkStandardTestsNet.Test.Utils;
 using NUnit.Framework;
+using Org.BouncyCastle.Utilities.Encoders;
 using TechTalk.SpecFlow;
 using static System.Console;
 
@@ -107,10 +109,6 @@ public class WasmStepDefinitions {
             deployResult.Parse().DeployHash, 
             true,
             new CancellationTokenSource(TimeSpan.FromSeconds(300)).Token);
-       
-        WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        WriteLine(deployData.Parse().Deploy.Hash);
-        WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         
         Assert.That(deployData, Is.Not.Null);
         Assert.That(deployData.Parse().Deploy, Is.Not.Null);
@@ -138,7 +136,7 @@ public class WasmStepDefinitions {
         
         foreach (var key in account.NamedKeys) {
             Assert.That(key.Name.ToUpper().StartsWith(name.ToUpper()));
-            if (key.Name.StartsWith("hash")) {
+            if (key.Key.ToString()!.StartsWith("hash")) {
                 _contextMap.Add(StepConstants.CONTRACT_HASH, key.Key);
             }
         }
@@ -146,75 +144,212 @@ public class WasmStepDefinitions {
     }
 
     [Then(@"the contract data ""(.*)"" is a ""(.*)"" with a value of ""(.*)"" and bytes of ""(.*)""")]
-    public async Task ThenTheContractDataIsAWithAValueOfAndBytesOf(string path, string typeName, string value, string hexBytes) {
+    public async Task ThenTheContractDataIsAWithAValueOfAndBytesOf(string path, CLType typeName, string value, string hexBytes) {
         WriteLine("the contract data {0} is a {1} with a value of {2} and bytes of {3}", path, typeName, value, hexBytes);
 
         var stateRootHash = _contextMap.Get<string>(StepConstants.STATE_ROOT_HASH);
-        var contractHash = _contextMap.Get<string>(StepConstants.CONTRACT_HASH);
+        var contractHash = _contextMap.Get<GlobalStateKey>(StepConstants.CONTRACT_HASH);
         
-        var stateItem = await GetCasperService().QueryGlobalState(contractHash, stateRootHash);
+        var stateItem = await GetCasperService().QueryGlobalState(contractHash, stateRootHash, path);
 
         var clValue = stateItem.Parse().StoredValue.CLValue;
         
         Assert.That(clValue.TypeInfo.Type, Is.EqualTo(typeName));
-        
-        // var expectedValue = 
 
-        // final String stateRootHash = this.contextMap.get("stateRootHash");
-        // final String contractHash = this.contextMap.get("contractHash");
-        //
-        // //noinspection deprecation
-        // final StoredValueData stateItem = this.casperService.getStateItem(
-        //     stateRootHash,
-        //     contractHash,
-        //     Collections.singletonList(path)
-        // );
-        //
-        // //noinspection rawtypes
-        // final AbstractCLValue clValue = (AbstractCLValue) stateItem.getStoredValue().getValue();
-        // assertThat(clValue.getClType().getTypeName(), is(typeName));
-        //
-        // final Object expectedValue = CLTypeUtils.convertToCLTypeValue(typeName, value);
-        // assertThat(clValue.getValue(), is(expectedValue));
-        //
-        // assertThat(clValue.getBytes(), is(hexBytes));
+        var expectedValue = CLTypeUtils.ConvertToClTypeValue(typeName, value);
+        Assert.That(clValue.Parsed.ToString(), Is.EqualTo(expectedValue.ToString()));
+        Assert.That(GetHexValue(clValue), Is.EqualTo(hexBytes.ToUpper()));
 
     }
 
     [When(@"the contract entry point is invoked by hash with a transfer amount of ""(.*)""")]
-    public void WhenTheContractEntryPointIsInvokedByHashWithATransferAmountOf(string amount) {
-        WriteLine("the contract entry point is invoked by hash with a transfer amount of {0}", amount);
-        throw new NotImplementedException();
+    public async Task WhenTheContractEntryPointIsInvokedByHashWithATransferAmountOf(string transferAmount) {
+        WriteLine("the contract entry point is invoked by hash with a transfer amount of {0}", transferAmount);
+
+        var recipient = KeyPair.CreateNew(KeyAlgo.ED25519).PublicKey;
+        var amount = BigInteger.Parse(transferAmount);
+        var contractHash = _contextMap.Get<GlobalStateKey>(StepConstants.CONTRACT_HASH).ToString()![5..];
+
+        var faucetPrivateKey = _contextMap.Get<KeyPair>(StepConstants.FAUCET_PRIVATE_KEY);
+        var accountHash = recipient.GetAccountHash();
+        
+        var args = new List<NamedArg> {
+            new("recipient", CLValue.ByteArray(Hex.Decode(accountHash[13..]))),
+            new("amount", CLValue.U256(amount))
+        };
+
+        var session = new StoredContractByHashDeployItem(contractHash, "transfer", args);
+        var payment = new ModuleBytesDeployItem(amount);
+        
+        var header = new DeployHeader(){
+            Account = faucetPrivateKey.PublicKey,
+            Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
+            Ttl = (ulong) TimeSpan.FromMinutes(30).TotalMilliseconds,
+            ChainName =  "casper-net-1",
+            GasPrice = 1
+        };
+        
+        var deploy = new Deploy(header, payment, session);       
+       
+        deploy.Sign(faucetPrivateKey);
+
+        var putResponse = await GetCasperService().PutDeploy(deploy);
+
+        _contextMap.Add(StepConstants.TRANSFER_DEPLOY, putResponse);
+
     }
 
     [Then(@"the contract invocation deploy is successful")]
-    public void ThenTheContractInvocationDeployIsSuccessful() {
+    public async Task ThenTheContractInvocationDeployIsSuccessful() {
         WriteLine("the contract invocation deploy is successful");
-        throw new NotImplementedException();
+
+        var transferDeploy  = _contextMap.Get<RpcResponse<PutDeployResult>>(StepConstants.TRANSFER_DEPLOY);
+
+        var deployData = await GetCasperService().GetDeploy(
+            transferDeploy.Parse().DeployHash, 
+            true,
+            new CancellationTokenSource(TimeSpan.FromSeconds(300)).Token);
+        
+        Assert.That(deployData, Is.Not.Null);
+        Assert.That(deployData.Parse().Deploy, Is.Not.Null);
+        Assert.That(deployData!.Parse().ExecutionResults[0].IsSuccess);
+        
     }
 
     [When(@"the the contract is invoked by name ""(.*)"" and a transfer amount of ""(.*)""")]
-    public void WhenTheTheContractIsInvokedByNameAndATransferAmountOf(string name, string amount) {
-        WriteLine("the the contract is invoked by name {0} and a transfer amount of {1}", name, amount);
-        throw new NotImplementedException();
+    public async Task WhenTheTheContractIsInvokedByNameAndATransferAmountOf(string name, string transferAmount) {
+        WriteLine("the the contract is invoked by name {0} and a transfer amount of {1}", name, transferAmount);
+
+        var recipient = KeyPair.CreateNew(KeyAlgo.ED25519).PublicKey;
+        var amount = BigInteger.Parse(transferAmount);
+        var faucetPrivateKey = _contextMap.Get<KeyPair>(StepConstants.FAUCET_PRIVATE_KEY);
+        var accountHash = recipient.GetAccountHash();
+        
+        var args = new List<NamedArg> {
+            new("recipient", CLValue.ByteArray(Hex.Decode(accountHash[13..]))),
+            new("amount", CLValue.U256(amount))
+        };
+
+        var session = new StoredContractByNameDeployItem(name, "transfer", args);
+        var payment = new ModuleBytesDeployItem(amount);
+        
+        var header = new DeployHeader(){
+            Account = faucetPrivateKey.PublicKey,
+            Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
+            Ttl = (ulong) TimeSpan.FromMinutes(30).TotalMilliseconds,
+            ChainName =  "casper-net-1",
+            GasPrice = 1
+        };
+        
+        var deploy = new Deploy(header, payment, session);       
+       
+        deploy.Sign(faucetPrivateKey);
+
+        var putResponse = await GetCasperService().PutDeploy(deploy);
+
+        _contextMap.Add(StepConstants.TRANSFER_DEPLOY, putResponse);
+        
     }
 
     [When(@"the the contract is invoked by hash and version with a transfer amount of ""(.*)""")]
-    public void WhenTheTheContractIsInvokedByHashAndVersionWithATransferAmountOf(string amount) {
-        WriteLine("the the contract is invoked by hash and version with a transfer amount of {0}", amount);
-        throw new NotImplementedException();
+    public async Task WhenTheTheContractIsInvokedByHashAndVersionWithATransferAmountOf(string transferAmount) {
+        WriteLine("the the contract is invoked by hash and version with a transfer amount of {0}", transferAmount);
+
+        var recipient = KeyPair.CreateNew(KeyAlgo.ED25519).PublicKey;
+        var amount = BigInteger.Parse(transferAmount);
+        var faucetPrivateKey = _contextMap.Get<KeyPair>(StepConstants.FAUCET_PRIVATE_KEY);
+        var accountHash = recipient.GetAccountHash();
+        var contractHash = _contextMap.Get<GlobalStateKey>(StepConstants.CONTRACT_HASH).ToString()![5..];
+        
+        var args = new List<NamedArg> {
+            new("recipient", CLValue.ByteArray(Hex.Decode(accountHash[13..]))),
+            new("amount", CLValue.U256(amount))
+        };
+
+        var session = new StoredVersionedContractByHashDeployItem(contractHash, 1, "transfer", args);
+        var payment = new ModuleBytesDeployItem(amount);
+        
+        var header = new DeployHeader(){
+            Account = faucetPrivateKey.PublicKey,
+            Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
+            Ttl = (ulong) TimeSpan.FromMinutes(30).TotalMilliseconds,
+            ChainName =  "casper-net-1",
+            GasPrice = 1
+        };
+        
+        var deploy = new Deploy(header, payment, session);       
+       
+        deploy.Sign(faucetPrivateKey);
+
+        var putResponse = await GetCasperService().PutDeploy(deploy);
+
+        _contextMap.Add(StepConstants.TRANSFER_DEPLOY, putResponse);
+        
     }
 
     [When(@"the the contract is invoked by name ""(.*)"" and version with a transfer amount of ""(.*)""")]
-    public void WhenTheTheContractIsInvokedByNameAndVersionWithATransferAmountOf(string name, string amount) {
-        WriteLine("the the contract is invoked by name {0} and version with a transfer amount of {1}", name, amount);
-        throw new NotImplementedException();
+    public async Task WhenTheTheContractIsInvokedByNameAndVersionWithATransferAmountOf(string name, string transferAmount) {
+        WriteLine("the the contract is invoked by name {0} and version with a transfer amount of {1}", name, transferAmount);
+      
+        var recipient = KeyPair.CreateNew(KeyAlgo.ED25519).PublicKey;
+        var amount = BigInteger.Parse(transferAmount);
+        var faucetPrivateKey = _contextMap.Get<KeyPair>(StepConstants.FAUCET_PRIVATE_KEY);
+        var accountHash = recipient.GetAccountHash();
+        
+        var args = new List<NamedArg> {
+            new("recipient", CLValue.ByteArray(Hex.Decode(accountHash[13..]))),
+            new("amount", CLValue.U256(amount))
+        };
+
+        var session = new StoredVersionedContractByNameDeployItem(name.ToUpper(), 1, "transfer", args);
+        var payment = new ModuleBytesDeployItem(amount);
+        
+        var header = new DeployHeader(){
+            Account = faucetPrivateKey.PublicKey,
+            Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
+            Ttl = (ulong) TimeSpan.FromMinutes(30).TotalMilliseconds,
+            ChainName =  "casper-net-1",
+            GasPrice = 1
+        };
+        
+        var deploy = new Deploy(header, payment, session);       
+       
+        deploy.Sign(faucetPrivateKey);
+
+        var putResponse = await GetCasperService().PutDeploy(deploy);
+
+        _contextMap.Add(StepConstants.TRANSFER_DEPLOY, putResponse);
     }
 
     [Then(@"the contract dictionary item ""(.*)"" is a ""(.*)"" with a value of ""(.*)"" and bytes of ""(.*)""")]
-    public void ThenTheContractDictionaryItemIsAWithAValueOfAndBytesOf(string dictionary, string type, string value, string bytes) {
+    public async Task ThenTheContractDictionaryItemIsAWithAValueOfAndBytesOf(string dictionary, string type, string value, string bytes) {
         WriteLine("the contract dictionary item {0} is a {1} with a value of {2} and bytes of {3}", dictionary, type, value, bytes);
-        throw new NotImplementedException();
+
+        var stateRootHash = _contextMap.Get<string>(StepConstants.STATE_ROOT_HASH);
+        var contractHash = _contextMap.Get<GlobalStateKey>(StepConstants.CONTRACT_HASH);
+        var faucetPrivateKey = _contextMap.Get<KeyPair>(StepConstants.FAUCET_PRIVATE_KEY);
+
+        var clValuePublicKey = CLValue.PublicKey(faucetPrivateKey.PublicKey);
+        // var decode = Hex.Decode(clValuePublicKey.Bytes);
+        // var encode = Base64.Encode(decode);
+        // var balanceKey = Hex.Encode(encode);
+
+        var accountInfo = await GetCasperService().GetAccountInfo(faucetPrivateKey.PublicKey);
+
+        var stateDictionaryItem = await GetCasperService()
+            .GetDictionaryItemByContract(accountInfo.Parse().Account.NamedKeys.First().Key.ToString(), "", dictionary, stateRootHash);
+
     }
     
+    private string GetHexValue(CLValue clValue) {
+
+        var clValueHex = BitConverter.ToString(clValue.Bytes).Replace("-", "");
+        
+        if (clValue.TypeInfo.Type.Equals(CLType.Key)) {
+            clValueHex = clValueHex[2..];
+        }
+
+        return clValueHex;
+
+    }
 }
