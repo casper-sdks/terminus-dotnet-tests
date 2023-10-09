@@ -8,6 +8,7 @@ using Casper.Network.SDK;
 using Casper.Network.SDK.JsonRpc;
 using Casper.Network.SDK.JsonRpc.ResultTypes;
 using Casper.Network.SDK.Types;
+using Casper.Network.SDK.Utils;
 using CsprSdkStandardTestsNet.Test.Utils;
 using NUnit.Framework;
 using TechTalk.SpecFlow;
@@ -53,7 +54,7 @@ public class WasmStepDefinitions {
         Assert.That(wasmBytes.Length, Is.EqualTo(189336));
         
         var chainName = "casper-net-1";
-        var payment = BigInteger.Parse("200000000000");
+        var paymentAmount = BigInteger.Parse("200000000000");
         byte tokenDecimals = 11;
         var tokenName = "Acme Token";
         var tokenTotalSupply = BigInteger.Parse("500000000000");
@@ -69,24 +70,25 @@ public class WasmStepDefinitions {
         
         _contextMap.Add(StepConstants.FAUCET_PRIVATE_KEY, faucetKey);
 
-        var paymentArgs = new List<NamedArg>{ 
-            new ("amount", CLValue.U512(payment)), 
+        var runtimeArgs = new List<NamedArg>{ 
             new ("token_decimals", CLValue.U8(tokenDecimals)), 
             new ("token_name", CLValue.String(tokenName)),
             new ("token_symbol", CLValue.String(tokenSymbol)), 
             new ("token_total_supply", CLValue.U256(tokenTotalSupply)) 
         };
         
-        // FAIL
-        // Currently can't add a list of NamedArgs to a Contract Deploy
-        var deploy = DeployTemplates.ContractDeploy(
-            wasmBytes,
-            faucetKey.PublicKey,
-            payment,
-            chainName,
-            1, 
-            (ulong)TimeSpan.FromMinutes(30).TotalMilliseconds); 
-        
+        var header = new DeployHeader(){
+            Account = faucetKey.PublicKey,
+            Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
+            Ttl = (ulong) TimeSpan.FromMinutes(30).TotalMilliseconds,
+            ChainName = chainName,
+            GasPrice = 1
+        };
+
+        var session = new ModuleBytesDeployItem(wasmBytes, runtimeArgs);
+        var payment = new ModuleBytesDeployItem(paymentAmount);
+        var deploy = new Deploy(header, payment, session);       
+       
         deploy.Sign(faucetKey);
 
         var putResponse = await GetCasperService().PutDeploy(deploy);
@@ -106,9 +108,10 @@ public class WasmStepDefinitions {
             true,
             new CancellationTokenSource(TimeSpan.FromSeconds(300)).Token);
        
-        //FAIL
-        //The erc20 contract fails to deploy
-        //The test contract, counter-define.wasm from the SDK unit tests deploys successfully
+        WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        WriteLine(deployData.Parse().Deploy.Hash);
+        WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        
         Assert.That(deployData, Is.Not.Null);
         Assert.That(deployData.Parse().Deploy, Is.Not.Null);
         Assert.That(deployData!.Parse().ExecutionResults[0].IsSuccess);
@@ -116,15 +119,66 @@ public class WasmStepDefinitions {
     }
 
     [Then(@"the account named keys contain the ""(.*)"" name")]
-    public void ThenTheAccountNamedKeysContainTheName(string name) {
+    public async Task ThenTheAccountNamedKeysContainTheName(string name) {
         WriteLine("the account named keys contain the {0} name", name);
-        throw new NotImplementedException();
+
+        var publicKey = _contextMap.Get<KeyPair>(StepConstants.FAUCET_PRIVATE_KEY).PublicKey;
+        var accountHash = publicKey.GetAccountHash();
+        var stateRootHash = await GetCasperService().GetStateRootHash();
+        _contextMap.Add(StepConstants.STATE_ROOT_HASH, stateRootHash);
+        
+        var stateItem = await GetCasperService().QueryGlobalState(accountHash, stateRootHash);
+        
+        Assert.That(stateItem, Is.Not.Null);
+        Assert.That(stateItem.Parse().StoredValue, Is.Not.Null);
+
+        var account = stateItem.Parse().StoredValue.Account;
+        
+        Assert.That(account.AssociatedKeys, Is.Not.Empty);
+        
+        foreach (var key in account.NamedKeys) {
+            Assert.That(key.Name.ToUpper().StartsWith(name.ToUpper()));
+            if (key.Name.StartsWith("hash")) {
+                _contextMap.Add(StepConstants.CONTRACT_HASH, key.Key);
+            }
+        }
+
     }
 
     [Then(@"the contract data ""(.*)"" is a ""(.*)"" with a value of ""(.*)"" and bytes of ""(.*)""")]
-    public void ThenTheContractDataIsAWithAValueOfAndBytesOf(string data, string type, string value, string bytes) {
-        WriteLine("the contract data {0} is a {1} with a value of {2} and bytes of {3}", data, type, value, bytes);
-        throw new NotImplementedException();
+    public async Task ThenTheContractDataIsAWithAValueOfAndBytesOf(string path, string typeName, string value, string hexBytes) {
+        WriteLine("the contract data {0} is a {1} with a value of {2} and bytes of {3}", path, typeName, value, hexBytes);
+
+        var stateRootHash = _contextMap.Get<string>(StepConstants.STATE_ROOT_HASH);
+        var contractHash = _contextMap.Get<string>(StepConstants.CONTRACT_HASH);
+        
+        var stateItem = await GetCasperService().QueryGlobalState(contractHash, stateRootHash);
+
+        var clValue = stateItem.Parse().StoredValue.CLValue;
+        
+        Assert.That(clValue.TypeInfo.Type, Is.EqualTo(typeName));
+        
+        // var expectedValue = 
+
+        // final String stateRootHash = this.contextMap.get("stateRootHash");
+        // final String contractHash = this.contextMap.get("contractHash");
+        //
+        // //noinspection deprecation
+        // final StoredValueData stateItem = this.casperService.getStateItem(
+        //     stateRootHash,
+        //     contractHash,
+        //     Collections.singletonList(path)
+        // );
+        //
+        // //noinspection rawtypes
+        // final AbstractCLValue clValue = (AbstractCLValue) stateItem.getStoredValue().getValue();
+        // assertThat(clValue.getClType().getTypeName(), is(typeName));
+        //
+        // final Object expectedValue = CLTypeUtils.convertToCLTypeValue(typeName, value);
+        // assertThat(clValue.getValue(), is(expectedValue));
+        //
+        // assertThat(clValue.getBytes(), is(hexBytes));
+
     }
 
     [When(@"the contract entry point is invoked by hash with a transfer amount of ""(.*)""")]
