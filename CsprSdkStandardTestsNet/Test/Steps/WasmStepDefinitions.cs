@@ -336,8 +336,14 @@ public class WasmStepDefinitions {
 
         var accountInfo = await GetCasperService().GetAccountInfo(faucetPrivateKey.PublicKey);
 
-        var stateDictionaryItem = await GetCasperService()
-            .GetDictionaryItemByContract(accountInfo.Parse().Account.NamedKeys.First().Key.ToString(), "", dictionary, stateRootHash);
+        // var stateDictionaryItem = await GetCasperService()
+        //     .GetDictionaryItemByContract(accountInfo.Parse().Account.NamedKeys.First().Key.ToString(), dictionary, contractHash.ToString(), stateRootHash);
+        
+       var stateDictionaryItem = await GetCasperService()
+            .GetDictionaryItemByContract(contractHash.ToString(), "balances", "name");
+
+       // var stateDictionaryItem = await GetCasperService()
+       //     .GetDictionaryItemByURef(accountInfo.Parse().Account.NamedKeys[1].Key.ToString(), dictionary);
 
     }
     
