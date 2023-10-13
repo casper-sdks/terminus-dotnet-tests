@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -140,7 +139,7 @@ public class WasmStepDefinitions {
                 _contextMap.Add(StepConstants.CONTRACT_HASH, key.Key);
             }
         }
-
+        
     }
 
     [Then(@"the contract data ""(.*)"" is a ""(.*)"" with a value of ""(.*)"" and bytes of ""(.*)""")]
@@ -266,6 +265,13 @@ public class WasmStepDefinitions {
             new("amount", CLValue.U256(amount))
         };
 
+        /*
+         * TODO
+         * We need to call StoredVersionedContractByHashDeployItem by contract package hash instead of contract hash
+         * Multiple contract hash can be children of of a contract package
+         * Need to find a way of retrieving the contract package hash! 
+        */
+        
         var session = new StoredVersionedContractByHashDeployItem(contractHash, 1, "transfer", args);
         var payment = new ModuleBytesDeployItem(amount);
         
@@ -319,31 +325,17 @@ public class WasmStepDefinitions {
         var putResponse = await GetCasperService().PutDeploy(deploy);
 
         _contextMap.Add(StepConstants.TRANSFER_DEPLOY, putResponse);
+        
     }
 
     [Then(@"the contract dictionary item ""(.*)"" is a ""(.*)"" with a value of ""(.*)"" and bytes of ""(.*)""")]
-    public async Task ThenTheContractDictionaryItemIsAWithAValueOfAndBytesOf(string dictionary, string type, string value, string bytes) {
+    public void ThenTheContractDictionaryItemIsAWithAValueOfAndBytesOf(string dictionary, string type, string value, string bytes) {
         WriteLine("the contract dictionary item {0} is a {1} with a value of {2} and bytes of {3}", dictionary, type, value, bytes);
 
-        var stateRootHash = _contextMap.Get<string>(StepConstants.STATE_ROOT_HASH);
-        var contractHash = _contextMap.Get<GlobalStateKey>(StepConstants.CONTRACT_HASH);
-        var faucetPrivateKey = _contextMap.Get<KeyPair>(StepConstants.FAUCET_PRIVATE_KEY);
-
-        var clValuePublicKey = CLValue.PublicKey(faucetPrivateKey.PublicKey);
-        // var decode = Hex.Decode(clValuePublicKey.Bytes);
-        // var encode = Base64.Encode(decode);
-        // var balanceKey = Hex.Encode(encode);
-
-        var accountInfo = await GetCasperService().GetAccountInfo(faucetPrivateKey.PublicKey);
-
-        // var stateDictionaryItem = await GetCasperService()
-        //     .GetDictionaryItemByContract(accountInfo.Parse().Account.NamedKeys.First().Key.ToString(), dictionary, contractHash.ToString(), stateRootHash);
-        
-       var stateDictionaryItem = await GetCasperService()
-            .GetDictionaryItemByContract(contractHash.ToString(), "balances", "name");
-
-       // var stateDictionaryItem = await GetCasperService()
-       //     .GetDictionaryItemByURef(accountInfo.Parse().Account.NamedKeys[1].Key.ToString(), dictionary);
+         /*
+         * TODO
+         * Need to figure out a way to get the dictionary name and the dictionary item from the chain
+         */
 
     }
     
