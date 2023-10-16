@@ -109,8 +109,9 @@ public class SpeculativeExecutionSteps {
             _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
 
         var key = speculativeDeployData.ExecutionResult.Transfers.First();
+        
         var transform =
-            speculativeDeployData.ExecutionResult.Effect.Transforms.Find(t => t.Key.ToHexString().Equals(key));
+            speculativeDeployData.ExecutionResult.Effect.Transforms.Find(t => t.Key.ToHexString().ToUpper().Equals(key.ToHexString().ToUpper()));
         
         Assert.That(transform, Is.Not.Null);
         
