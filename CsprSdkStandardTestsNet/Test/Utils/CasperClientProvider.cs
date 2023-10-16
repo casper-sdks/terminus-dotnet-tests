@@ -25,3 +25,25 @@ public class CasperClientProvider {
         return _instance ??= new CasperClientProvider();
     }
 }
+
+public class CasperSpeculativeClientProvider {
+    private static CasperSpeculativeClientProvider _instance;
+
+    private CasperSpeculativeClientProvider() {
+        try{
+            var properties = new TestProperties();
+            CasperService = new NetCasperClient("http://" + properties.Hostname + ":" + properties.SpecPort + "/rpc");
+        }
+        catch (Exception exception) {
+            throw new Exception(exception.ToString());
+        }
+    }
+
+    public NetCasperClient CasperService { get; set; }
+
+    public ServerEventsClient EventService { get; set; }
+
+    public static CasperSpeculativeClientProvider GetInstance() {
+        return _instance ??= new CasperSpeculativeClientProvider();
+    }
+}
