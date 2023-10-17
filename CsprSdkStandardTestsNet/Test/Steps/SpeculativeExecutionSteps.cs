@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -186,53 +187,76 @@ public class SpeculativeExecutionSteps {
     public void ThenTheSpeculativeExecExecutionResultTransformWithTheDeployKeyHasTheDeployHashOfTheTransfersHash() {
         WriteLine("the speculative_exec execution_result transform with the deploy key has the deploy_hash of the transfer's hash");
 
-        var speculativeDeployData =
-            _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
-
         var deploy = _contextMap.Get<Deploy>(StepConstants.DEPLOY);
-
-        // var key = "deploy-" + speculativeDeployData
-
-        // final String key = "deploy-" + deploy.getHash().toString();
-        // final Optional<Entry> transform = getTransform(key);
-        // assertThat(transform.isPresent(), is(true));
-        //
-        // assertThat(transform.get().getKey(), is(key));
-        //
-        // final WriteDeployInfo writeDeployInfo = (WriteDeployInfo) transform.get().getTransform();
-        // assertThat(writeDeployInfo.getDeployInfo().getHash(), is(deploy.getHash().toString()));
-
+        var writeDeployInfo = GetDeployTransform();
+        
+        Assert.That(writeDeployInfo.DeployHash.ToUpper(), Is.EqualTo(deploy.Hash.ToUpper()));
 
     }
 
     [Then(@"the speculative_exec execution_result transform with a deploy key has a gas field of (.*)")]
-    public void ThenTheSpeculativeExecExecutionResultTransformWithADeployKeyHasAGasFieldOf(int gas) {
+    public void ThenTheSpeculativeExecExecutionResultTransformWithADeployKeyHasAGasFieldOf(string gas) {
         WriteLine("the speculative_exec execution_result transform with a deploy key has a gas field of {0}", gas);
+        
+        var writeDeployInfo = GetDeployTransform();
+        Assert.That(writeDeployInfo.Gas, Is.EqualTo(BigInteger.Parse(gas)));
+        
     }
 
     [Then(@"the speculative_exec execution_result transform with a deploy key has (.*) transfer with a valid transfer hash")]
     public void ThenTheSpeculativeExecExecutionResultTransformWithADeployKeyHasTransferWithAValidTransferHash(int transform) {
         WriteLine("the speculative_exec execution_result transform with a deploy key has {0} transfer with a valid transfer hash", transform);
+        
+        var writeDeployInfo = GetDeployTransform();
+        
+        Assert.That(writeDeployInfo.Transfers.Count, Is.EqualTo(transform));
+        Assert.That(writeDeployInfo.Transfers.First().KeyIdentifier.ToString(), Is.EqualTo("Transfer"));
+        Assert.That(writeDeployInfo.Transfers.First().ToHexString().Length, Is.EqualTo(73 - "transfer-".Length));
+
     }
 
-    [Then(@"the speculative_exec execution_result transform with a deploy key has as filedValue field of the ""(.*)"" account hash")]
+    [Then(@"the speculative_exec execution_result transform with a deploy key has as from field of the ""(.*)"" account hash")]
     public void ThenTheSpeculativeExecExecutionResultTransformWithADeployKeyHasAsFromFieldOfTheAccountHash(string account) {
-        WriteLine("the speculative_exec execution_result transform with a deploy key has as filedValue field of the {0} account hash", account);
+        WriteLine("the speculative_exec execution_result transform with a deploy key has as from field of the {0} account hash", account);
+        
+        var writeDeployInfo = GetDeployTransform();
+        Assert.That(writeDeployInfo.From.ToString().ToUpper(), Is.EqualTo(KeyPair.FromPem(GetPrivateKey("faucet")).PublicKey.GetAccountHash().ToUpper()));
+
     }
 
     [Then(@"the speculative_exec execution_result transform with a deploy key has as source field of the ""(.*)"" account purse uref")]
     public void ThenTheSpeculativeExecExecutionResultTransformWithADeployKeyHasAsSourceFieldOfTheAccountPurseUref(string account) {
         WriteLine("the speculative_exec execution_result transform with a deploy key has as source field of the {0} account purse uref", account);
+        
+        var writeDeployInfo = GetDeployTransform();
+        Assert.That(writeDeployInfo.Source.ToString().ToUpper(), Is.EqualTo(GetAccountInfo("faucet").Result.Account.MainPurse.ToString().ToUpper()));
+        
     }
 
     [Then(@"the speculative_exec execution_result contains at least (.*) valid balance transforms")]
-    public void ThenTheSpeculativeExecExecutionResultContainsAtLeastValidBalanceTransforms(int transforms) {
-        WriteLine("the speculative_exec execution_result contains at least {0} valid balance transforms", transforms);
+    public void ThenTheSpeculativeExecExecutionResultContainsAtLeastValidBalanceTransforms(int count) {
+        WriteLine("the speculative_exec execution_result contains at least {0} valid balance transforms", count);
+
+        var transforms = GetFaucetBalanceTransforms();
+
+        Assert.That(transforms.Count, Is.GreaterThanOrEqualTo(count));
+
     }
 
     [Then(@"the speculative_exec execution_result (.*)st balance transform is an Identity transform")]
-    public void ThenTheSpeculativeExecExecutionResultStBalanceTransformIsAnIdentityTransform(int balance) {
-        WriteLine("the speculative_exec execution_result {0}st balance transform is an Identity transform", balance);
+    public void ThenTheSpeculativeExecExecutionResultStBalanceTransformIsAnIdentityTransform(int index) {
+        WriteLine("the speculative_exec execution_result {0}st balance transform is an Identity transform", index);
+        
+        var transforms = GetFaucetBalanceTransforms();
+
+        var transform =  transforms[index -1];
+        
+        // final List<Entry> transforms = getFaucetBalanceTransforms();
+        // final Entry entry = transforms.get(first - 1);
+        // Transform transform = entry.getTransform();
+        // assertThat(transform, is(instanceOf(WriteContract.class)));
+        // assertThat(((WriteContract) transform).name(), is("IDENTITY"));
+
     }
 
     [Then(@"the speculative_exec execution_result last balance transform is an Identity transform is as WriteCLValue of type ""(.*)""")]
@@ -263,5 +287,36 @@ public class SpeculativeExecutionSteps {
 
 
     }
+
+    private DeployInfo GetDeployTransform() {
+        
+        var deploy = _contextMap.Get<Deploy>(StepConstants.DEPLOY);
+        var speculativeDeployData =
+            _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
+        var key = "deploy-" + deploy.Hash.ToUpper();
+        
+        var transform =
+            speculativeDeployData.ExecutionResult.Effect.Transforms.Find(t => t.Key.ToString().ToUpper().Equals(key.ToUpper()));     
+
+        
+        Assert.That(transform, Is.Not.Null);
+        Assert.That(transform.Key.ToString().ToUpper(), Is.EqualTo(key.ToUpper()));
+            
+        return (DeployInfo)transform.Value;
+        
+    }
+
+
+    private List<Transform> GetFaucetBalanceTransforms() {
+        var mainPurse = GetAccountInfo("faucet").Result.Account.MainPurse.ToString().Split("-")[1];
+        var speculativeDeployData =
+            _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
+        
+        var transforms = speculativeDeployData.ExecutionResult.Effect.Transforms.Where
+            (t => t.Key.ToString().ToUpper().Equals(("balance-" + mainPurse.ToUpper()).ToUpper()));
+
+        return transforms.ToList();
+    }
+    
     
 }
