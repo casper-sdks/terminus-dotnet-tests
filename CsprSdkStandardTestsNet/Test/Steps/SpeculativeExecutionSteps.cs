@@ -14,7 +14,9 @@ using static System.Console;
 
 namespace CsprSdkStandardTestsNet.Test.Steps;
 
-
+/**
+ * Speculative Execution step definitions
+ */
 [Binding]
 public class SpeculativeExecutionSteps {
     
@@ -42,8 +44,7 @@ public class SpeculativeExecutionSteps {
        Assert.That(userPublicKey, Is.Not.Null);
        Assert.That(userPublicKey, Is.Not.Null);
        Assert.That(userPublicKey.PublicKey, Is.Not.Null);
-       
-       
+
        var deploy = DeployTemplates.StandardTransfer(
            faucetPrivateKey.PublicKey,
            userPublicKey.PublicKey,
@@ -106,6 +107,7 @@ public class SpeculativeExecutionSteps {
             _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
         
         Assert.That(speculativeDeployData.ExecutionResult.Cost, Is.EqualTo(BigInteger.Parse(cost)));
+        
     }
 
     [Then(@"the speculative_exec has a valid execution_result")]
@@ -129,14 +131,12 @@ public class SpeculativeExecutionSteps {
     [Then(@"the speculative_exec execution_result transform wth the transfer key contains the deploy_hash")]
     public void ThenTheSpeculativeExecExecutionResultTransformWthTheTransferKeyContainsTheDeployHash() {
         WriteLine("the speculative_exec execution_result transform wth the transfer key contains the deploy_hash");
-
-        var speculativeDeployData =
-            _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
+        
         var transform = _contextMap.Get<Transform>(StepConstants.TRANSFORM);
         var writeTransfer = (Transfer)transform.Value;
-
-        //We can't retrieve the DeployHash filedValue the Speculative Deploy Result
-        // Assert.Fail();
+        var deploy = _contextMap.Get<Deploy>(StepConstants.DEPLOY);
+        
+        Assert.That(writeTransfer.DeployHash.ToUpper(), Is.EqualTo(deploy.Hash.ToUpper()));
 
     }
 
@@ -164,6 +164,7 @@ public class SpeculativeExecutionSteps {
 
         Assert.That("to".Equals(fieldValue) ? writeTransfer.To.ToString().ToUpper() : writeTransfer.From.ToString().ToUpper(),
             Is.EqualTo(accountHash.ToUpper()));
+        
     }
 
     [Then(@"the speculative_exec execution_result transform with the transfer key has the ""(.*)"" field set to the purse uref of the ""(.*)"" account")]
@@ -252,7 +253,6 @@ public class SpeculativeExecutionSteps {
         var transform =  transforms[index -1];
         
         Assert.That(transform.Type, Is.EqualTo(TransformType.Identity));
-        
 
     }
 
@@ -263,31 +263,45 @@ public class SpeculativeExecutionSteps {
         var transforms = GetFaucetBalanceTransforms();
         var transform = transforms.Last();
         
+        
+        Assert.That(transform.Type, Is.EqualTo(TransformType.WriteCLValue));
 
-        // final List<Entry> transforms = getFaucetBalanceTransforms();
-        // final Entry entry = transforms.get(transforms.size() - 1);
-        // final Transform transform = entry.getTransform();
-        // assertThat(transform, is(instanceOf(WriteCLValue.class)));
-        // assertThat(((WriteCLValue) transform).getClvalue().getClType().getTypeName(), is(type));
-        // final BigInteger value = (BigInteger) ((WriteCLValue) transform).getClvalue().getValue();
-        // assertThat(value, is(greaterThan(BigInteger.valueOf(9999))));
-
+        /*
+         * TODO
+         * The SDK needs updating to enable the retrieval of the transform type value and cltype
+         */
+        
+        Assert.Fail();
+        
     }
 
     [Then(@"the speculative_exec execution_result contains a valid (.*) transform with a value of (.*)")]
-    public void ThenTheSpeculativeExecExecutionResultContainsAValidAddUIntTransformWithAValueOf(int transform, int value) {
-        WriteLine("the speculative_exec execution_result contains a valid {0} transform with a value of {1}", transform, value);
+    public void ThenTheSpeculativeExecExecutionResultContainsAValidAddUIntTransformWithAValueOf(string type, int value) {
+        WriteLine("the speculative_exec execution_result contains a valid {0} transform with a value of {1}", type, value);
+
+        var speculativeDeployData =
+            _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
+
+        var transform = speculativeDeployData.ExecutionResult.Effect.Transforms.Last();
         
+        Assert.That(transform.Type, Is.EqualTo(TransformType.AddUInt512));
         
-        // final Entry lastEntry = speculativeDeployData.getExecutionResult().getEffect().getTransforms().get(
-        //     speculativeDeployData.getExecutionResult().getEffect().getTransforms().size() - 1
-        // );
-        //
-        // // Assert the last transform is the addition of the balance transfer
-        // final Transform transform = lastEntry.getTransform();
-        // assertThat(transform, is(Matchers.instanceOf(AddUInt512.class)));
-        // assertThat(((AddUInt512) transform).getU512(), is(BigInteger.valueOf(value)));
+        /*
+         * TODO
+         * The SDK needs updating to enable the retrieval of the transforms cltype value
+         */
         
+        Assert.Fail();
+
+    }
+    
+    [Then(@"the speculative_exec execution_result contains a valid balance transform")]
+    public void ThenTheSpeculativeExecExecutionResultContainsAValidBalanceTransform() {
+        WriteLine("he speculative_exec execution_result contains a valid balance transform");
+        
+        var transforms = GetFaucetBalanceTransforms();
+        Assert.That(transforms.First().Key.KeyIdentifier, Is.EqualTo(KeyIdentifier.Balance));
+
     }
 
     private string GetPrivateKey(string user) {
@@ -306,7 +320,6 @@ public class SpeculativeExecutionSteps {
 
         return stateAccount.Parse();
 
-
     }
 
     private DeployInfo GetDeployTransform() {
@@ -317,8 +330,7 @@ public class SpeculativeExecutionSteps {
         var key = "deploy-" + deploy.Hash.ToUpper();
         
         var transform =
-            speculativeDeployData.ExecutionResult.Effect.Transforms.Find(t => t.Key.ToString().ToUpper().Equals(key.ToUpper()));     
-
+            speculativeDeployData.ExecutionResult.Effect.Transforms.Find(t => t.Key.ToString().ToUpper().Equals(key.ToUpper()));   
         
         Assert.That(transform, Is.Not.Null);
         Assert.That(transform.Key.ToString().ToUpper(), Is.EqualTo(key.ToUpper()));
@@ -326,7 +338,6 @@ public class SpeculativeExecutionSteps {
         return (DeployInfo)transform.Value;
         
     }
-
 
     private List<Transform> GetFaucetBalanceTransforms() {
         var mainPurse = GetAccountInfo("faucet").Result.Account.MainPurse.ToString().Split("-")[1];
@@ -337,7 +348,7 @@ public class SpeculativeExecutionSteps {
             (t => t.Key.ToString().ToUpper().Equals(("balance-" + mainPurse.ToUpper()).ToUpper()));
 
         return transforms.ToList();
+        
     }
-    
     
 }

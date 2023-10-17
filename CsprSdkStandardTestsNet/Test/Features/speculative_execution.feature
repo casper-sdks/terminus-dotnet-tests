@@ -21,5 +21,5 @@ Feature: speculative_execution
     And the speculative_exec execution_result contains at least 6 valid balance transforms
     And the speculative_exec execution_result 1st balance transform is an Identity transform
     And the speculative_exec execution_result last balance transform is an Identity transform is as WriteCLValue of type "U512"
-    #And the speculative_exec execution_result contains a valid balance transform
-#    And the speculative_exec execution_result contains a valid AddUInt512 transform with a value of 100000000
+    And the speculative_exec execution_result contains a valid balance transform
+    And the speculative_exec execution_result contains a valid AddUInt512 transform with a value of 100000000
