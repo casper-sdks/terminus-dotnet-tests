@@ -19,8 +19,12 @@ public class SpeculativeExecutionSteps {
     
     private readonly ContextMap _contextMap = ContextMap.Instance;
     
-    private static NetCasperClient GetCasperService() {
+    private static NetCasperClient GetCasperSpeculativeService() {
         return CasperSpeculativeClientProvider.GetInstance().CasperService;
+    }
+    
+    private static NetCasperClient GetCasperService() {
+        return CasperClientProvider.GetInstance().CasperService;
     }
     
     [Given(@"that the ""(.*)"" account transfers (.*) to user-(.*) account with a gas payment amount of (.*) using the speculative_exec RPC API")]
@@ -51,7 +55,7 @@ public class SpeculativeExecutionSteps {
 
        deploy.Sign(faucetPrivateKey);
        
-       var speculativeDeployData = await GetCasperService().SpeceulativeExecution(deploy);
+       var speculativeDeployData = await GetCasperSpeculativeService().SpeceulativeExecution(deploy);
 
        _contextMap.Add(StepConstants.DEPLOY_RESULT, speculativeDeployData);
         
@@ -108,10 +112,10 @@ public class SpeculativeExecutionSteps {
         var speculativeDeployData =
             _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
 
-        var key = speculativeDeployData.ExecutionResult.Transfers.First();
+        var key = speculativeDeployData.ExecutionResult.Transfers.First().ToHexString().ToUpper();
         
         var transform =
-            speculativeDeployData.ExecutionResult.Effect.Transforms.Find(t => t.Key.ToHexString().ToUpper().Equals(key.ToHexString().ToUpper()));
+            speculativeDeployData.ExecutionResult.Effect.Transforms.Find(t => t.Key.ToHexString().ToUpper().Equals(key));
         
         Assert.That(transform, Is.Not.Null);
         
@@ -122,26 +126,79 @@ public class SpeculativeExecutionSteps {
     [Then(@"the speculative_exec execution_result transform wth the transfer key contains the deploy_hash")]
     public void ThenTheSpeculativeExecExecutionResultTransformWthTheTransferKeyContainsTheDeployHash() {
         WriteLine("the speculative_exec execution_result transform wth the transfer key contains the deploy_hash");
+
+        var speculativeDeployData =
+            _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
+        var transform = _contextMap.Get<Transform>(StepConstants.TRANSFORM);
+        var writeTransfer = (Transfer)transform.Value;
+
+        //We can't retrieve the DeployHash filedValue the Speculative Deploy Result
+        // Assert.Fail();
+
     }
 
     [Then(@"the speculative_exec execution_result transform with the transfer key has the amount of (.*)")]
     public void ThenTheSpeculativeExecExecutionResultTransformWithTheTransferKeyHasTheAmountOf(string transferAmount) {
         WriteLine("the speculative_exec execution_result transform with the transfer key has the amount of {0}", transferAmount);
+
+        var transform = _contextMap.Get<Transform>(StepConstants.TRANSFORM);
+        Assert.That(transform.Type is TransformType.WriteTransfer);
+        
+        var writeTransfer = (Transfer)transform.Value;
+        
+        Assert.That(writeTransfer.Amount, Is.EqualTo(BigInteger.Parse(transferAmount)));
+
     }
 
     [Then(@"the speculative_exec execution_result transform with the transfer key has the ""(.*)"" field set to the ""(.*)"" account hash")]
-    public void ThenTheSpeculativeExecExecutionResultTransformWithTheTransferKeyHasTheFieldSetToTheAccountHash(string from, string to) {
-        WriteLine("the speculative_exec execution_result transform with the transfer key has the {0} field set to the {1} account hash", from, to);
+    public void ThenTheSpeculativeExecExecutionResultTransformWithTheTransferKeyHasTheFieldSetToTheAccountHash(string fieldValue, string account) {
+        WriteLine("the speculative_exec execution_result transform with the transfer key has the {0} field set to the {1} account hash", fieldValue, account);
+        
+        var accountHash = KeyPair.FromPem(GetPrivateKey(account)).PublicKey.GetAccountHash();
+        
+        var transform = _contextMap.Get<Transform>(StepConstants.TRANSFORM);
+        var writeTransfer = (Transfer)transform.Value;
+
+        Assert.That("to".Equals(fieldValue) ? writeTransfer.To.ToString().ToUpper() : writeTransfer.From.ToString().ToUpper(),
+            Is.EqualTo(accountHash.ToUpper()));
     }
 
     [Then(@"the speculative_exec execution_result transform with the transfer key has the ""(.*)"" field set to the purse uref of the ""(.*)"" account")]
-    public void ThenTheSpeculativeExecExecutionResultTransformWithTheTransferKeyHasTheFieldSetToThePurseUrefOfTheAccount(string to, string account) {
-        WriteLine("the speculative_exec execution_result transform with the transfer key has the {0} field set to the purse uref of the {1} account", to, account);
+    public void ThenTheSpeculativeExecExecutionResultTransformWithTheTransferKeyHasTheFieldSetToThePurseUrefOfTheAccount(string fieldValue, string account) {
+        WriteLine("the speculative_exec execution_result transform with the transfer key has the {0} field set to the purse uref of the {1} account", fieldValue, account);
+
+        var mainPurse = GetAccountInfo(account).Result.Account.MainPurse.ToString().ToUpper();
+        var transform = _contextMap.Get<Transform>(StepConstants.TRANSFORM);
+        var writeTransfer = (Transfer)transform.Value;
+        
+        if ("source".Equals(fieldValue)) { 
+            Assert.That(writeTransfer.Source.ToString().ToUpper(), Is.EqualTo(mainPurse));
+        } else {
+            Assert.That(writeTransfer.Target.ToString().ToUpper().Split("-")[0], Is.EqualTo(mainPurse.Split("-")[0]));
+            Assert.That(writeTransfer.Target.ToString().ToUpper().Split("-")[1], Is.EqualTo(mainPurse.Split("-")[1]));
+        }
+
     }
 
     [Then(@"the speculative_exec execution_result transform with the deploy key has the deploy_hash of the transfer's hash")]
     public void ThenTheSpeculativeExecExecutionResultTransformWithTheDeployKeyHasTheDeployHashOfTheTransfersHash() {
         WriteLine("the speculative_exec execution_result transform with the deploy key has the deploy_hash of the transfer's hash");
+
+        var speculativeDeployData =
+            _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
+        
+        var key = "deploy-" + speculativeDeployData
+        
+        // final String key = "deploy-" + deploy.getHash().toString();
+        // final Optional<Entry> transform = getTransform(key);
+        // assertThat(transform.isPresent(), is(true));
+        //
+        // assertThat(transform.get().getKey(), is(key));
+        //
+        // final WriteDeployInfo writeDeployInfo = (WriteDeployInfo) transform.get().getTransform();
+        // assertThat(writeDeployInfo.getDeployInfo().getHash(), is(deploy.getHash().toString()));
+        
+        
     }
 
     [Then(@"the speculative_exec execution_result transform with a deploy key has a gas field of (.*)")]
@@ -154,9 +211,9 @@ public class SpeculativeExecutionSteps {
         WriteLine("the speculative_exec execution_result transform with a deploy key has {0} transfer with a valid transfer hash", transform);
     }
 
-    [Then(@"the speculative_exec execution_result transform with a deploy key has as from field of the ""(.*)"" account hash")]
+    [Then(@"the speculative_exec execution_result transform with a deploy key has as filedValue field of the ""(.*)"" account hash")]
     public void ThenTheSpeculativeExecExecutionResultTransformWithADeployKeyHasAsFromFieldOfTheAccountHash(string account) {
-        WriteLine("the speculative_exec execution_result transform with a deploy key has as from field of the {0} account hash", account);
+        WriteLine("the speculative_exec execution_result transform with a deploy key has as filedValue field of the {0} account hash", account);
     }
 
     [Then(@"the speculative_exec execution_result transform with a deploy key has as source field of the ""(.*)"" account purse uref")]
@@ -184,11 +241,23 @@ public class SpeculativeExecutionSteps {
         WriteLine("the speculative_exec execution_result contains a valid {0} transform with a value of {1}", transform, value);
     }
 
-
     private string GetPrivateKey(string user) {
         return (user.Equals("faucet"))
             ? AssetUtils.GetFaucetAsset(1, "secret_key.pem")
-            : AssetUtils.GetUserKeyAsset(1, int.Parse(user), "secret_key.pem");
+            : AssetUtils.GetUserKeyAsset(1, int.Parse(user[^1..]), "secret_key.pem");
+    }
+
+    private async Task<GetAccountInfoResult> GetAccountInfo(string account) {
+
+        var speculativeDeployData =
+            _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
+        
+        var stateAccount = await GetCasperService().GetAccountInfo(
+            KeyPair.FromPem(GetPrivateKey(account)).PublicKey, speculativeDeployData.BlockHash);
+
+        return stateAccount.Parse();
+
+
     }
     
 }

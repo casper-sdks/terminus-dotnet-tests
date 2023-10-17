@@ -16,7 +16,7 @@ Feature: speculative_execution
     And the speculative_exec execution_result transform with the deploy key has the deploy_hash of the transfer's hash
     And the speculative_exec execution_result transform with a deploy key has a gas field of 100000000
     And the speculative_exec execution_result transform with a deploy key has 1 transfer with a valid transfer hash
-    And the speculative_exec execution_result transform with a deploy key has as from field of the "faucet" account hash
+#    And the speculative_exec execution_result transform with a deploy key has as from field of the "faucet" account hash
     And the speculative_exec execution_result transform with a deploy key has as source field of the "faucet" account purse uref
     And the speculative_exec execution_result contains at least 6 valid balance transforms
     And the speculative_exec execution_result 1st balance transform is an Identity transform
