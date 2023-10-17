@@ -251,22 +251,43 @@ public class SpeculativeExecutionSteps {
 
         var transform =  transforms[index -1];
         
-        // final List<Entry> transforms = getFaucetBalanceTransforms();
-        // final Entry entry = transforms.get(first - 1);
-        // Transform transform = entry.getTransform();
-        // assertThat(transform, is(instanceOf(WriteContract.class)));
-        // assertThat(((WriteContract) transform).name(), is("IDENTITY"));
+        Assert.That(transform.Type, Is.EqualTo(TransformType.Identity));
+        
 
     }
 
     [Then(@"the speculative_exec execution_result last balance transform is an Identity transform is as WriteCLValue of type ""(.*)""")]
     public void ThenTheSpeculativeExecExecutionResultLastBalanceTransformIsAnIdentityTransformIsAsWriteClValueOfType(string type) {
         WriteLine("the speculative_exec execution_result last balance transform is an Identity transform is as WriteCLValue of type {0}", type);
+        
+        var transforms = GetFaucetBalanceTransforms();
+        var transform = transforms.Last();
+        
+
+        // final List<Entry> transforms = getFaucetBalanceTransforms();
+        // final Entry entry = transforms.get(transforms.size() - 1);
+        // final Transform transform = entry.getTransform();
+        // assertThat(transform, is(instanceOf(WriteCLValue.class)));
+        // assertThat(((WriteCLValue) transform).getClvalue().getClType().getTypeName(), is(type));
+        // final BigInteger value = (BigInteger) ((WriteCLValue) transform).getClvalue().getValue();
+        // assertThat(value, is(greaterThan(BigInteger.valueOf(9999))));
+
     }
 
     [Then(@"the speculative_exec execution_result contains a valid (.*) transform with a value of (.*)")]
     public void ThenTheSpeculativeExecExecutionResultContainsAValidAddUIntTransformWithAValueOf(int transform, int value) {
         WriteLine("the speculative_exec execution_result contains a valid {0} transform with a value of {1}", transform, value);
+        
+        
+        // final Entry lastEntry = speculativeDeployData.getExecutionResult().getEffect().getTransforms().get(
+        //     speculativeDeployData.getExecutionResult().getEffect().getTransforms().size() - 1
+        // );
+        //
+        // // Assert the last transform is the addition of the balance transfer
+        // final Transform transform = lastEntry.getTransform();
+        // assertThat(transform, is(Matchers.instanceOf(AddUInt512.class)));
+        // assertThat(((AddUInt512) transform).getU512(), is(BigInteger.valueOf(value)));
+        
     }
 
     private string GetPrivateKey(string user) {
