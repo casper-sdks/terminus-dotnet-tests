@@ -55,6 +55,8 @@ public class SpeculativeExecutionSteps {
 
        deploy.Sign(faucetPrivateKey);
        
+       _contextMap.Add(StepConstants.DEPLOY, deploy);
+       
        var speculativeDeployData = await GetCasperSpeculativeService().SpeceulativeExecution(deploy);
 
        _contextMap.Add(StepConstants.DEPLOY_RESULT, speculativeDeployData);
@@ -186,9 +188,11 @@ public class SpeculativeExecutionSteps {
 
         var speculativeDeployData =
             _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
-        
-        var key = "deploy-" + speculativeDeployData
-        
+
+        var deploy = _contextMap.Get<Deploy>(StepConstants.DEPLOY);
+
+        // var key = "deploy-" + speculativeDeployData
+
         // final String key = "deploy-" + deploy.getHash().toString();
         // final Optional<Entry> transform = getTransform(key);
         // assertThat(transform.isPresent(), is(true));
@@ -197,8 +201,8 @@ public class SpeculativeExecutionSteps {
         //
         // final WriteDeployInfo writeDeployInfo = (WriteDeployInfo) transform.get().getTransform();
         // assertThat(writeDeployInfo.getDeployInfo().getHash(), is(deploy.getHash().toString()));
-        
-        
+
+
     }
 
     [Then(@"the speculative_exec execution_result transform with a deploy key has a gas field of (.*)")]
