@@ -257,7 +257,7 @@ public class SpeculativeExecutionSteps {
     }
 
     [Then(@"the speculative_exec execution_result last balance transform is an Identity transform is as WriteCLValue of type ""(.*)""")]
-    public void ThenTheSpeculativeExecExecutionResultLastBalanceTransformIsAnIdentityTransformIsAsWriteClValueOfType(string type) {
+    public void ThenTheSpeculativeExecExecutionResultLastBalanceTransformIsAnIdentityTransformIsAsWriteClValueOfType(CLType type) {
         WriteLine("the speculative_exec execution_result last balance transform is an Identity transform is as WriteCLValue of type {0}", type);
         
         var transforms = GetFaucetBalanceTransforms();
@@ -266,12 +266,9 @@ public class SpeculativeExecutionSteps {
         
         Assert.That(transform.Type, Is.EqualTo(TransformType.WriteCLValue));
 
-        /*
-         * TODO
-         * The SDK needs updating to enable the retrieval of the transform type value and cltype
-         */
-        
-        Assert.Fail();
+        var clType = (CLValue)transform.Value;
+        Assert.That(clType.TypeInfo.Type, Is.EqualTo(type));
+        Assert.That(BigInteger.Parse(clType.Parsed.ToString()!), Is.GreaterThan(99999));        
         
     }
 
@@ -286,12 +283,10 @@ public class SpeculativeExecutionSteps {
         
         Assert.That(transform.Type, Is.EqualTo(TransformType.AddUInt512));
         
-        /*
-         * TODO
-         * The SDK needs updating to enable the retrieval of the transforms cltype value
-         */
-        
-        Assert.Fail();
+        // Assert.That((TransformType.AddUInt512)transform, Is.EqualTo(TransformType.AddUInt512));
+        //
+        //
+        // assertThat(((AddUInt512) transform).getU512(), is(BigInteger.valueOf(value)));
 
     }
     
