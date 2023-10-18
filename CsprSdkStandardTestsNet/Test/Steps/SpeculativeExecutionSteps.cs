@@ -263,7 +263,6 @@ public class SpeculativeExecutionSteps {
         var transforms = GetFaucetBalanceTransforms();
         var transform = transforms.Last();
         
-        
         Assert.That(transform.Type, Is.EqualTo(TransformType.WriteCLValue));
 
         var clType = (CLValue)transform.Value;
