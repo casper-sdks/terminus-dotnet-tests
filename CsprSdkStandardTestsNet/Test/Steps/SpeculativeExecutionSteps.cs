@@ -282,12 +282,8 @@ public class SpeculativeExecutionSteps {
         var transform = speculativeDeployData.ExecutionResult.Effect.Transforms.Last();
         
         Assert.That(transform.Type, Is.EqualTo(TransformType.AddUInt512));
+        Assert.That(transform.Value, Is.EqualTo(BigInteger.Parse(value.ToString())));
         
-        // Assert.That((TransformType.AddUInt512)transform, Is.EqualTo(TransformType.AddUInt512));
-        //
-        //
-        // assertThat(((AddUInt512) transform).getU512(), is(BigInteger.valueOf(value)));
-
     }
     
     [Then(@"the speculative_exec execution_result contains a valid balance transform")]
