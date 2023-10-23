@@ -56,5 +56,7 @@ public static class StepConstants {
     public const string INITIAL_BALANCE = "initialBalance";
     public const string PARENT_HASH = "parentHash";
     public const string CONTRACT_HASH = "contractHash";
+    public const string TRANSFORM = "transform";
+    public const string DEPLOY = "deploy";
     
 }
