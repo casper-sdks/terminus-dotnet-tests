@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 using Casper.Network.SDK;
@@ -77,15 +78,22 @@ public class Deploys {
         
         _contextMap.Add(StepConstants.DEPLOY_TIMESTAMP, DateUtils.ToEpochTime(DateTime.UtcNow));
         
-        var deploy = DeployTemplates.StandardTransfer(
-            senderKey.PublicKey,
-            _contextMap.Get<PublicKey>(StepConstants.RECEIVER_KEY),
-            _contextMap.Get<BigInteger>(StepConstants.TRANSFER_AMOUNT),
-            100_000_000,
-            chainName,
-            null,
-            _contextMap.Get<ulong>(StepConstants.GAS_PRICE),
-            (ulong)TimeSpan.FromMinutes(_contextMap.Get<ulong>(StepConstants.TTL)).TotalMilliseconds);
+        var session = new TransferDeployItem {
+            RuntimeArgs = new List<NamedArg> {
+                new("amount", CLValue.U512(_contextMap.Get<BigInteger>(StepConstants.TRANSFER_AMOUNT))),
+                new("target", _contextMap.Get<PublicKey>(StepConstants.RECEIVER_KEY)),
+                new("id", CLValue.Option(CLValue.U64(0))),
+            }
+        };
+        var payment = new ModuleBytesDeployItem(100_000_000);
+        var header = new DeployHeader {
+            Account = senderKey.PublicKey,
+            Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
+            Ttl = (ulong)TimeSpan.FromMinutes(_contextMap.Get<ulong>(StepConstants.TTL)).TotalMilliseconds,
+            ChainName = chainName,
+            GasPrice = 1
+        };
+        var deploy = new Deploy(header, payment, session);
         
         deploy.Sign(senderKey);
         
@@ -240,7 +248,7 @@ public class Deploys {
         WriteLine("the deploy has a ttl of {0}m", ttl);
         
         Assert.That(GetDeployData().Parse().Deploy.Header.Ttl, Is.EqualTo(TimeSpan.FromMinutes(ttl).TotalMilliseconds));
-
+        
     }
 
     [Then(@"the deploy session has a ""(.*)"" argument value of type ""(.*)""")]
@@ -251,9 +259,6 @@ public class Deploys {
         var namedArg = session.RuntimeArgs.Find(n => n.Name.Equals(arg));
 
         Assert.That(namedArg, Is.Not.Null);
-        
-        // Fails if the type is PublicKey
-        // This fails because the receiver public key is stored as an Account Hash which is then stored as CLType ByteArray
         Assert.That(namedArg.Value.TypeInfo.Type.ToString(), Is.EqualTo(type));
 
     }
@@ -285,14 +290,9 @@ public class Deploys {
         Assert.That(namedArg, Is.Not.Null);
         
         var userKeyAsset = AssetUtils.GetUserKeyAsset(1, user, StepConstants.PUBLIC_KEY_PEM);
-
         var publicKey = PublicKey.FromPem(userKeyAsset);
 
-        //Have to convert the PublicKey to an Account Hash
-        var accountHash = publicKey.GetAccountHash();
-        
-        // This only works if we compare the Account Hash of the user's PublicKey
-        Assert.That(namedArg.Value.Parsed.ToString()?.ToUpper(), Is.EqualTo(accountHash[13..].ToUpper()));
+        Assert.That(namedArg.Value.Parsed.ToString()?.ToUpper(), Is.EqualTo(publicKey.ToString().ToUpper()));
 
     }
     
