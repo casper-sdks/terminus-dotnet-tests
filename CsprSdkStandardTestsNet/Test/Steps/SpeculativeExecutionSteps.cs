@@ -330,12 +330,13 @@ public class SpeculativeExecutionSteps {
     }
 
     private List<Transform> GetFaucetBalanceTransforms() {
+        
         var mainPurse = GetAccountInfo("faucet").Result.Account.MainPurse.ToString().Split("-")[1];
         var speculativeDeployData =
             _contextMap.Get<RpcResponse<SpeculativeExecutionResult>>(StepConstants.DEPLOY_RESULT).Parse();
         
         var transforms = speculativeDeployData.ExecutionResult.Effect.Transforms.Where
-            (t => t.Key.ToString().ToUpper().Equals(("balance-" + mainPurse.ToUpper()).ToUpper()));
+            (t => t.Key.ToString().ToLower().Equals("balance-" + mainPurse.ToLower()));
 
         return transforms.ToList();
         

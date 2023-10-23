@@ -9,7 +9,7 @@ public class TestProperties {
         RcpPort = GetIntProperty("cspr.port.rcp", 11101);
         GetIntProperty("cspr.port.rest", 14101);
         SsePort = GetIntProperty("cspr.port.sse", 18101);
-        SpecPort = GetIntProperty("cspr.port.sse", 25101);
+        SpecPort = GetIntProperty("cspr.port.spec", 25101);
     }
 
     public int SpecPort { get; }
