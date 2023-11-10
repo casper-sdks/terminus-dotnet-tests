@@ -49,7 +49,7 @@ public partial class CLValuesDefinitions {
         
         Assert.That(clValue.TypeInfo.Type.Equals(CLType.Key) 
                 ? hexBytes[2..].ToUpper() : hexBytes.ToUpper(),
-                Is.EqualTo(GetHexValue(clValue)));
+                Is.EqualTo(CLTypeUtils.GetHexValue(clValue)));
     }
 
     [Given(@"that the CL complex value of type ""(.*)"" with an internal types of ""(.*)"" values of ""(.*)""")]
@@ -116,7 +116,7 @@ public partial class CLValuesDefinitions {
 
         Assert.That(namedArg.Value.TypeInfo.Type.Equals(CLType.Key) 
                 ? hexBytes[2..].ToUpper() : hexBytes.ToUpper(),
-            Is.EqualTo(GetHexValue(namedArg.Value)));
+            Is.EqualTo(CLTypeUtils.GetHexValue(namedArg.Value)));
         
         Assert.That(namedArg.Value.TypeInfo.Type, Is.EqualTo(name));
         
@@ -132,7 +132,7 @@ public partial class CLValuesDefinitions {
         
         Assert.That(namedArg, Is.Not.Null);
 
-        Assert.That(GetHexValue(namedArg.Value), Is.EqualTo(bytes.ToUpper()));
+        Assert.That(CLTypeUtils.GetHexValue(namedArg.Value), Is.EqualTo(bytes.ToUpper()));
 
         switch (name) {
             
@@ -257,19 +257,6 @@ public partial class CLValuesDefinitions {
         Assert.That(actual.TypeInfo, Is.EqualTo(expected.TypeInfo));
         Assert.That(actual.Bytes, Is.EqualTo(expected.Bytes));
         
-    }
-    
-    
-    private string GetHexValue(CLValue clValue) {
-
-        var clValueHex = BitConverter.ToString(clValue.Bytes).Replace("-", "");
-        
-        if (clValue.TypeInfo.Type.Equals(CLType.Key)) {
-            clValueHex = clValueHex[2..];
-        }
-
-        return clValueHex;
-
     }
     
     private List<CLType> GetInnerClTypeData(string innerTypes) {

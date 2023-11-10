@@ -52,4 +52,17 @@ public class CLTypeUtils {
         }
     }
 
+
+    public static string GetHexValue(CLValue clValue) {
+
+        var clValueHex = BitConverter.ToString(clValue.Bytes).Replace("-", "");
+        
+        if (clValue.TypeInfo.Type.Equals(CLType.Key)) {
+            clValueHex = clValueHex[2..];
+        }
+
+        return clValueHex;
+
+    }
+
 }
