@@ -7,11 +7,11 @@ using Casper.Network.SDK;
 using Casper.Network.SDK.JsonRpc;
 using Casper.Network.SDK.JsonRpc.ResultTypes;
 using Casper.Network.SDK.Types;
-using Casper.Network.SDK.Utils;
 using CsprSdkStandardTestsNet.Test.Utils;
 using NUnit.Framework;
 using TechTalk.SpecFlow;
 using static System.Console;
+
 
 namespace CsprSdkStandardTestsNet.Test.Steps;
 
@@ -107,43 +107,14 @@ public class NestedTuplesDefinitions {
     public async Task GivenThatTheNestedTuplesAreDeployedInATransfer() {
         WriteLine("that the nested tuples are deployed in a transfer");
 
-        var runtimeArgs = new List<NamedArg>{ 
-            new ("amount", CLValue.U512(BigInteger.Parse("2500000000"))), 
-            new ("target", CLValue.PublicKey(PublicKey.FromPem(AssetUtils.GetUserKeyAsset(1, 2, "public_key.pem")))), 
-            new ("id", CLValue.Option(CLValue.U64((ulong)BigInteger.Parse("200")))),
+        var runtimeArgs = new List<NamedArg>{
             new ("TUPLE_1", _contextMap.Get<CLValue>("TUPLE_ROOT_1")), 
             new ("TUPLE_2", _contextMap.Get<CLValue>("TUPLE_ROOT_2")), 
             new ("TUPLE_3", _contextMap.Get<CLValue>("TUPLE_ROOT_3")),
             new ("TUPLE_4", BuildTuple())
         };
 
-        var session = new TransferDeploy(runtimeArgs);
-
-        var senderKey = KeyPair.FromPem(AssetUtils.GetUserKeyAsset(1, 1, "secret_key.pem"));
-       
-        var header = new DeployHeader {
-            Account = senderKey.PublicKey,
-            Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
-            Ttl = 1800000,
-            ChainName = "casper-net-1",
-            GasPrice = 1
-        };
-        var payment = new ModuleBytesDeployItem(100000000);
-        
-        var deploy = new Deploy(header, payment, session);
-        
-        deploy.Sign(senderKey);
-
-        _contextMap.Add(StepConstants.PUT_DEPLOY, deploy);
-
-        WriteLine(deploy.SerializeToJson());
-
-        var deployResult = await GetCasperService().PutDeploy(deploy);
-        
-        Assert.IsNotNull(deployResult);
-        Assert.IsNotNull(deployResult.Parse().DeployHash);
-
-        _contextMap.Add(StepConstants.DEPLOY_RESULT, deployResult);
+        await DeployUtils.DeployArgs(runtimeArgs, GetCasperService());
 
     }
 
