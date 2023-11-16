@@ -123,17 +123,17 @@ public class NestedListsStepDefinitions {
 
         var x = CLValue.I32(int.Parse(val1.ToString()));
         
-        // CLValue[] clList = {
-        //     CLValueFactory.CreateValue(CLType.I32, val1.ToString()),
-        //     CLValueFactory.CreateValue(CLType.I32, val2.ToString()),
-        //     CLValueFactory.CreateValue(CLType.I32, val3.ToString())
-        // };
-
         CLValue[] clList = {
-            CLValue.I32(int.Parse(val1.ToString())),
-            CLValue.I32(int.Parse(val2.ToString())),
-            CLValue.I32(int.Parse(val3.ToString()))
+            CLValueFactory.CreateValue(type, val1.ToString()),
+            CLValueFactory.CreateValue(type, val2.ToString()),
+            CLValueFactory.CreateValue(type, val3.ToString())
         };
+
+        // CLValue[] clList = {
+        //     CLValue.I32(int.Parse(val1.ToString())),
+        //     CLValue.I32(int.Parse(val2.ToString())),
+        //     CLValue.I32(int.Parse(val3.ToString()))
+        // };
 
         _list = CLValue.List(clList);
 
@@ -141,7 +141,7 @@ public class NestedListsStepDefinitions {
     }
 
     [Then(@"the list's ""(.*)"" item is a CLValue with (.*) value of (.*)")]
-    public void ThenTheListsItemIsAclValueWithIValueOf(string nth, int type, int value) {
+    public void ThenTheListsItemIsAclValueWithIValueOf(string nth, CLType type, int value) {
         WriteLine("the list's '{0}' item is a CLValue with {1} value of {2}", type, nth, value);
         
     }
