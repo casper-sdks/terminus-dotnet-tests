@@ -58,7 +58,7 @@ public class NestedListsStepDefinitions {
          * We can't retrieve the list length from the CLtype  
          */
         
-        // Assert.Fail();
+        Assert.Fail();
         
     }
 
@@ -70,7 +70,7 @@ public class NestedListsStepDefinitions {
         * We can't retrieve the list data from the CLtype  
         */
         
-        // Assert.Fail();
+        Assert.Fail();
         
     }
 
@@ -129,14 +129,7 @@ public class NestedListsStepDefinitions {
             CLValueFactory.CreateValue(type, val3.ToString())
         };
 
-        // CLValue[] clList = {
-        //     CLValue.I32(int.Parse(val1.ToString())),
-        //     CLValue.I32(int.Parse(val2.ToString())),
-        //     CLValue.I32(int.Parse(val3.ToString()))
-        // };
-
         _list = CLValue.List(clList);
-
 
     }
 
@@ -144,17 +137,44 @@ public class NestedListsStepDefinitions {
     public void ThenTheListsItemIsAclValueWithIValueOf(string nth, CLType type, int value) {
         WriteLine("the list's '{0}' item is a CLValue with {1} value of {2}", type, nth, value);
         
-    }
-
-    [Given(@"a nested list is created with (.*) values of \(\((.*), (.*), (.*)\),\((.*), (.*), (.*)\)\)")]
-    public void GivenANestedListIsCreatedWithUValuesOf(string type, int val1, int val2, int val3, int val4, int val5, int val6) {
-        WriteLine("a nested list is created with {0} values of {1}, {2}, {3},{4}, {5}, {6}", type, val1, val2, val3, val4, val5, val6);
+        /*
+        * We can't retrieve the list data from the CLtype  
+        */
+        
+        Assert.Fail();
         
     }
 
+    [Given(@"a nested list is created with (.*) values of \(\((.*), (.*), (.*)\),\((.*), (.*), (.*)\)\)")]
+    public void GivenANestedListIsCreatedWithUValuesOf(CLType type, int val1, int val2, int val3, int val4, int val5, int val6) {
+        WriteLine("a nested list is created with {0} values of {1}, {2}, {3},{4}, {5}, {6}", type, val1, val2, val3, val4, val5, val6);
+        
+        CLValue[] clList1 = {
+            CLValueFactory.CreateValue(type, val1.ToString()),
+            CLValueFactory.CreateValue(type, val2.ToString()),
+            CLValueFactory.CreateValue(type, val3.ToString())
+        };
+        CLValue[] clList2 = {
+            CLValueFactory.CreateValue(type, val4.ToString()),
+            CLValueFactory.CreateValue(type, val5.ToString()),
+            CLValueFactory.CreateValue(type, val6.ToString())
+        };
+
+        CLValue[] clList = { CLValue.List(clList1), CLValue.List(clList2) };
+
+        _list = CLValue.List(clList);
+
+    }
+
     [Then(@"the ""(.*)"" nested list's ""(.*)"" item is a CLValue with (.*) value of (.*)")]
-    public void ThenTheNestedListsItemIsAclValueWithUValueOf(string nth1, string nth2, string type, int value) {
+    public void ThenTheNestedListsItemIsAclValueWithUValueOf(string nth1, string nth2, CLType type, int value) {
         WriteLine("the '{0}' nested list's '{1}' item is a CLValue with {2} value of {3}", nth1, nth2, type, value);
+        
+        /*
+        * We can't retrieve the list data from the CLtype  
+        */
+        
+        Assert.Fail();
         
     }
 }
