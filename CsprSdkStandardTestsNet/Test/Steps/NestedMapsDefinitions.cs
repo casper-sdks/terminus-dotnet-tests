@@ -44,9 +44,9 @@ public class NestedMapsDefinitions {
     public void ThenTheMapsKeyTypeIsAndTheMapsValueTypeIs(string keyType, string valueType) {
         WriteLine("the map's key type is '{0}' and the maps value type is '{1}'", keyType, valueType);
         
-        /*
-         * TODO
-         */
+        // The SDK needs to expose the CLType's values
+        
+        Assert.Fail();
         
     }
 
