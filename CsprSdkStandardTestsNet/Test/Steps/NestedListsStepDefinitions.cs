@@ -54,9 +54,7 @@ public class NestedListsStepDefinitions {
     public void ThenTheListsLengthIs(int length) {
         WriteLine("the list's length is {0}", length);
         
-        /*
-         * We can't retrieve the list length from the CLtype  
-         */
+        // The SDK needs to expose the CLType's values
         
         Assert.Fail();
         
@@ -66,9 +64,7 @@ public class NestedListsStepDefinitions {
     public void ThenTheListsItemIsAclValueWithValueOf(string nth, string type, string value) {
         WriteLine("the list's '{0}' item is a CLValue with '{1}' value of '{2}'", nth, type, value);
         
-        /*
-        * We can't retrieve the list data from the CLtype  
-        */
+        // The SDK needs to expose the CLType's values
         
         Assert.Fail();
         
@@ -170,9 +166,7 @@ public class NestedListsStepDefinitions {
     public void ThenTheNestedListsItemIsAclValueWithUValueOf(string nth1, string nth2, CLType type, int value) {
         WriteLine("the '{0}' nested list's '{1}' item is a CLValue with {2} value of {3}", nth1, nth2, type, value);
         
-        /*
-        * We can't retrieve the list data from the CLtype  
-        */
+        // The SDK needs to expose the CLType's values
         
         Assert.Fail();
         
