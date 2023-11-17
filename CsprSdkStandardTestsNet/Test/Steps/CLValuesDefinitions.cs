@@ -224,23 +224,37 @@ public partial class CLValuesDefinitions {
     
     
     private void AssertTupleThree(NamedArg namedArg, string types, string values) {
-        throw new NotImplementedException();
+        // The SDK needs to expose the CLType's values
+        
+        Assert.Fail();
     }
 
     private void AssertTupleTwo(NamedArg namedArg, string types, string values) {
-        throw new NotImplementedException();
+        // The SDK needs to expose the CLType's values
+        
+        Assert.Fail();
+        
     }
 
     private void AssertTupleOne(NamedArg namedArg, string types, string values) {
-        throw new NotImplementedException();
+        // The SDK needs to expose the CLType's values
+        
+        Assert.Fail();
+        
     }
 
     private void AssertMap(NamedArg namedArg, string types, string values) {
-        throw new NotImplementedException();
+        // The SDK needs to expose the CLType's values
+        
+        Assert.Fail();
+        
     }
 
     private void AssertList(NamedArg namedArg, string types, string values) {
-        throw new NotImplementedException();
+        // The SDK needs to expose the CLType's values
+        
+        Assert.Fail();
+        
     }
     
     private void AssertOption(NamedArg arg, string types, string values) {
