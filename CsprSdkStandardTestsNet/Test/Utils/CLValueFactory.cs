@@ -30,8 +30,14 @@ public class CLValueFactory {
             case CLType.U64:
                 return CLValue.U64((ulong)BigInteger.Parse(strValue));
 
+            case CLType.U128:
+                return CLValue.U128(BigInteger.Parse(strValue));
+
             case CLType.U256:
                 return CLValue.U256(BigInteger.Parse(strValue));
+
+            case CLType.U512:
+                return CLValue.U512(BigInteger.Parse(strValue));
 
             case CLType.I32:
                 return CLValue.I32(int.Parse(strValue));
