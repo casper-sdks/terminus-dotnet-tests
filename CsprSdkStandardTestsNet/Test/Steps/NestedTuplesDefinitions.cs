@@ -69,15 +69,20 @@ public class NestedTuplesDefinitions {
     public void ThenTheElementOfTheTupleIs(string index, int tuple, string value) {
         WriteLine("the '{0}' element of the Tuple{1} is '{2}'", index, tuple, value);
 
-        // The SDK doesn't expose the parsed CLtype values
-        // At the moment we are considering them optional 
-        // We won't fail the test here 
+        // The SDK needs to expose the CLType's values
+        
+        Assert.Fail();
         
     }
     
     [Then(@"the ""(.*)"" element of the Tuple(.*) is (.*)")]
     public void ThenTheElementOfTheTupleIs(string index, int tuple, int value) {
         WriteLine("the '{0}' element of the Tuple{1} is '{2}'", index, tuple, value);
+        
+        // The SDK needs to expose the CLType's values
+        
+        Assert.Fail();
+
     }
 
     [Then(@"the Tuple(.*) bytes are ""(.*)""")]
@@ -93,13 +98,16 @@ public class NestedTuplesDefinitions {
     public void GivenThatANestedTupleIsDefinedAsUsingUNumericValues2(int tuple, int arg0, int arg1, int arg2, int arg3) {
         WriteLine("that a nested Tuple{0} is defined as ({1}), ({2}, ({3}, {4}))) using U32 numeric values", tuple, arg0, arg1, arg2, arg3);
         
+        //Executed in the method GivenThatANestedTupleIsDefinedAsUsingUNumericValues1
         
     }
     
     [Given(@"that a nested Tuple(.*) is defined as \((.*), (.*), \((.*), (.*), (.*), (.*), (.*)\)\) using U32 numeric values")]
     public void GivenThatANestedTupleIsDefinedAsUsingUNumericValues3(int tuple, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6) {
         WriteLine("that a nested Tuple{0} is defined as ({1}), ({2}, ({3}, {4}, {5}, {6}, {7}))) using U32 numeric values", tuple, arg0, arg1, arg2, arg3, arg4, arg5, arg6);
-        
+
+        //Executed in the method GivenThatANestedTupleIsDefinedAsUsingUNumericValues1
+
     }
     
 
@@ -113,8 +121,7 @@ public class NestedTuplesDefinitions {
             new ("id", CLValue.Option(CLValue.U64((ulong)BigInteger.Parse("200")))),
             new ("TUPLE_1", _contextMap.Get<CLValue>("TUPLE_ROOT_1")), 
             new ("TUPLE_2", _contextMap.Get<CLValue>("TUPLE_ROOT_2")), 
-            new ("TUPLE_3", _contextMap.Get<CLValue>("TUPLE_ROOT_3")),
-            new ("TUPLE_4", BuildTuple())
+            new ("TUPLE_3", _contextMap.Get<CLValue>("TUPLE_ROOT_3"))
         };
 
         var session = new TransferDeploy(runtimeArgs);
@@ -187,24 +194,5 @@ public class NestedTuplesDefinitions {
             _ => _contextMap.Get<CLValue>("TUPLE_ROOT_3")
         };
     }
-
-    private CLValue BuildTuple() {
-
-        return CLValue.Tuple3(
-            CLValue.String("a95f017b-de48-4e3b-a127-86af7f7b10bb"),
-            CLValue.Bool(true),
-            CLValue.Tuple3(
-                CLValue.String("58458437-29de-4c5f-81c4-d8f66569eb13"),
-                CLValue.U512(BigInteger.Parse("14612087592038378751152858509524512533536096028044190178822935218486730194880516808459166772134240378240755073828170296740373082348622309614668344831750401")),
-                CLValue.Tuple3(
-                    CLValue.Bool(true),
-                    CLValue.String("aa269aa9-b6a4-49d2-87f5-dfb775ec06e0"),
-                    CLValue.U128(BigInteger.Parse("134252730720501571475137903438348973637"))
-                )
-            )
-        );
-
-    }
-    
 
 }
