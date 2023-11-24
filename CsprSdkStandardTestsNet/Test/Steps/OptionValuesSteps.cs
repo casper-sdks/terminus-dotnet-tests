@@ -32,12 +32,16 @@ public class OptionValuesSteps {
     public void GivenThatAnOptionValueHasAnEmptyValue() {
        WriteLine("that an Option value has an empty value");
 
+       //Not possible to test in the SDK
+       
     }
 
     [Then(@"the Option value is not present")]
     public void ThenTheOptionValueIsNotPresent() {
         WriteLine("the Option value is not present");
-        
+
+        //Not possible to test in the SDK
+
     }
 
     [Given(@"an Option value contains a ""(.*)"" value of ""(.*)""")]
@@ -106,7 +110,7 @@ public class OptionValuesSteps {
         
         // The SDK needs to expose the CLType's values
         
-        // Assert.Fail();
+        Assert.Fail();
         
     }
 }

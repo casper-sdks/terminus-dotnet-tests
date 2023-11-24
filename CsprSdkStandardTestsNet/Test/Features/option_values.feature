@@ -1,9 +1,9 @@
 Feature: Option Values
 
   Scenario: Option Values
-#    Given that an Option value has an empty value
-#    Then the Option value is not present
-#    And the Option value's bytes are ""
+    Given that an Option value has an empty value
+    Then the Option value is not present
+    And the Option value's bytes are ""
 
     Given an Option value contains a "Bool" value of "true"
     Then the Option value's bytes are "0101"
@@ -83,9 +83,9 @@ Feature: Option Values
     When the Option is read from the deploy
     Then the Option value's bytes are "0117fac696b19d1300622227dcf324306f3cdea13d09b41001"
 
-#    Given an Option value contains a "Any" value of "102030405060708090102030405060708090102030405060708090"
-#    Then the Option value's bytes are "01102030405060708090102030405060708090102030405060708090"
-#    Given that the Option value is deployed in a transfer as a named argument
-#    And the transfer containing the Option value is successfully executed
-#    When the Option is read from the deploy
-#    Then the Option value's bytes are "01102030405060708090102030405060708090102030405060708090"
+    Given an Option value contains a "Any" value of "102030405060708090102030405060708090102030405060708090"
+    Then the Option value's bytes are "01102030405060708090102030405060708090102030405060708090"
+    Given that the Option value is deployed in a transfer as a named argument
+    And the transfer containing the Option value is successfully executed
+    When the Option is read from the deploy
+    Then the Option value's bytes are "01102030405060708090102030405060708090102030405060708090"
