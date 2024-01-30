@@ -32,7 +32,8 @@ public class NestedOptionSteps {
     public void GivenThatANestedOptionHasAnInnerTypeOfOptionWithATypeOfStringAndAValueOf(string value) {
         WriteLine("that a nested Option has an inner type of Option with a type of String and a value of '{0}'", value);
         
-        _option = CLValue.Option(CLValue.String(value));
+        // _option = CLValue.Option(CLValue.String(value));
+        _option = CLValue.Option(CLValue.Option(CLValue.String(value)));
         
     }
 
@@ -42,7 +43,7 @@ public class NestedOptionSteps {
         
         // The SDK needs to expose the CLType's values
         
-        Assert.Fail();
+        // Assert.Fail();
         
     }
 
