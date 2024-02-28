@@ -7,13 +7,13 @@ using NUnit.Framework;
 namespace TerminusDotNet.Test.Utils;
 
 /**
- * Calls to the NCTL docker image 
+ * Calls to the node docker image 
  */
 
-public partial class Nctl {
+public partial class NodeClient {
     private readonly string _dockerName;
 
-    public Nctl(string dockerName) {
+    public NodeClient(string dockerName) {
         _dockerName = dockerName;
     }
     public string GetAccountMerkelProof(int userId) {
@@ -30,9 +30,9 @@ public partial class Nctl {
 
     public string GetAccountMainPurse(int userId) {
         
-        var node = Execute("view_user_account.sh", "user=" + userId, ParseJsonWithPreAmble);
+        var node = Execute("cctl-chain-view-account-of-user", "user=" + userId, ParseJsonWithPreAmble);
 
-        var mainPurse = node["stored_value"]!["Account"]!["main_purse"]!.ToString();
+        var mainPurse = node["main_purse"]!.ToString();
         
         Assert.That(mainPurse, Is.Not.Null);
         Assert.That(mainPurse.StartsWith("uref-"), Is.True);
@@ -43,8 +43,8 @@ public partial class Nctl {
     
     public string GetAccountHash(int userId) {
 
-        var node = Execute("view_user_account.sh", "user=" + userId, ParseJsonWithPreAmble);
-        var accountHash = node["stored_value"]!["Account"]!["account_hash"];
+        var node = Execute("cctl-chain-view-account-of-user", "user=" + userId, ParseJsonWithPreAmble);
+        var accountHash = node["account_hash"];
         
         Assert.That(accountHash, Is.Not.Null);
         Assert.That(accountHash.ToString().StartsWith("account-hash-"), Is.True);
@@ -54,32 +54,30 @@ public partial class Nctl {
     }
     
     public JsonNode GetNodeStatus(int nodeId) {
-        return Execute("view_node_status.sh", "node=" + nodeId, ParseJsonWithPreAmble);
+        return Execute("cctl-infra-node-view-status", "node=" + nodeId, ParseJsonWithPreAmble);
     }
     
     public JsonNode GetUserAccount(int userId) {
-        return Execute("view_user_account.sh", "user=" + userId, ParseJsonWithPreAmble);
+        return Execute("cctl-chain-view-account-of-user", "user=" + userId, ParseJsonWithPreAmble);
     }
     
     public JsonNode GetChainBlock(string blockHash) {
-        return Execute("view_chain_block.sh", "block=" + blockHash, ParseJson);
+        return Execute("cctl-chain-view-block", "block=" + blockHash, ParseJson);
     }
-    
-    public JsonNode GetChainBlockTransfers(string blockHash) {
-        return Execute("view_chain_block_transfers.sh", "block=" + blockHash, ParseJson);
-    }
-    
+
     public string GetStateRootHash(int nodeId) {
-        return Execute("view_chain_state_root_hash.sh", "node=" + nodeId, ParseString)
-            .Split("=")[1].Trim();
+
+        var res = Execute("cctl-chain-view-state-root-hash", "node=" + nodeId, ParseString).Split("\r\n");
+        return res[1].Split("=")[1].Trim();
+        
     }
-    
+
     private T Execute<T> (string shellCommand, string parameters, Func<string, T> func) {
         
         ProcessStartInfo startInfo = new() {
             FileName = "docker",
             Arguments =
-                $"exec -t {_dockerName}  /bin/bash -c \"source casper-node/utils/nctl/sh/views/{shellCommand} {parameters ?? ""}\"",
+                $"exec -t {_dockerName}  /bin/bash -i -c \"{shellCommand} {parameters ?? ""}\"",
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardOutput = true,

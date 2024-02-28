@@ -20,7 +20,7 @@ public class InfoGetStatusStepDefinitions {
 
     private readonly ContextMap _contextMap = ContextMap.Instance;
     private static readonly TestProperties TestProperties = new();
-    private readonly Nctl _nctl = new(TestProperties.DockerName);
+    private readonly NodeClient _nodeClient = new(TestProperties.DockerName);
 
     private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
@@ -39,7 +39,7 @@ public class InfoGetStatusStepDefinitions {
     public async Task GivenThatTheInfoGetStatusIsInvokedAgainstNctl() {
         WriteLine("that the info_get_status is invoked against nctl");
 
-        var expectedJsonNodeStatus = _nctl.GetNodeStatus(1);
+        var expectedJsonNodeStatus = _nodeClient.GetNodeStatus(1);
        
         Assert.That(expectedJsonNodeStatus, Is.Not.Null);
         _contextMap.Add(StepConstants.EXPECTED_STATUS_DATA, expectedJsonNodeStatus);
@@ -62,7 +62,7 @@ public class InfoGetStatusStepDefinitions {
         WriteLine("the info_get_status_result chainspec_name is {0}", chainName);
         
         var statusData = _contextMap.Get<RpcResponse<GetNodeStatusResult>>(StepConstants.STATUS_DATA);
-        Assert.That(statusData.Parse().ChainspecName, Is.EqualTo(chainName));
+        Assert.That(statusData.Parse().ChainspecName, Is.EqualTo(TestProperties.ChainName));
     }
 
     [Then(@"the info_get_status_result has a valid last_added_block_info")]

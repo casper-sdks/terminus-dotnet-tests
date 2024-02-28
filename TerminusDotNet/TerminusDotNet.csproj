@@ -5,7 +5,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Casper.Network.SDK" Version="2.1.0" />
         <PackageReference Include="JunitXml.TestLogger" Version="3.0.134" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
         <PackageReference Include="NHamcrest" Version="3.3.0" />
@@ -17,7 +16,7 @@
         <PackageReference Include="nunit" Version="3.13.3" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
-        <PackageReference Include="BouncyCastle.NetCore" Version="1.9.0" />
+        <PackageReference Include="BouncyCastle.Cryptography" Version="2.3.0" />
         <PackageReference Include="SpecFlow" Version="3.9.74" />
     </ItemGroup>
     <ItemGroup>
@@ -37,6 +36,9 @@
     </ItemGroup>
     <ItemGroup>
       <EmbeddedResource Remove="assets\**" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\casper-net-sdk\Casper.Network.SDK\Casper.Network.SDK.csproj" />
     </ItemGroup>
 
 </Project>

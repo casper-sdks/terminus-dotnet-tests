@@ -21,6 +21,7 @@ namespace TerminusDotNet.Test.Steps;
 public class SpeculativeExecutionSteps {
     
     private readonly ContextMap _contextMap = ContextMap.Instance;
+    private static readonly TestProperties TestProperties = new();
     
     private static NetCasperClient GetCasperSpeculativeService() {
         return CasperSpeculativeClientProvider.GetInstance().CasperService;
@@ -50,7 +51,7 @@ public class SpeculativeExecutionSteps {
            userPublicKey.PublicKey,
            BigInteger.Parse(transferAmount),
            BigInteger.Parse(paymentAmount),
-           "casper-net-1",
+           TestProperties.ChainName,
            null,
            1,
            (ulong)TimeSpan.FromMinutes(30).TotalMilliseconds);

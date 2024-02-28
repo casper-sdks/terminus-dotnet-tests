@@ -12,7 +12,7 @@ Points to note are:
 
 - install the .Net SDK 7.0 from [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
 
-- Clone repo and start NCTL (please note the NCTL Casper node version in the script 'docker-run')
+- Clone repo and start CCTL (please note the CCTL Casper node version in the script 'docker-run')
 
     ```bash
     cd terminus-dotnet-tests/TerminusDotNet/script

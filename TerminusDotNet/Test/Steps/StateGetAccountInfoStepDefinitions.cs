@@ -20,7 +20,7 @@ public class StateGetAccountInfoStepDefinitions {
     
     private readonly ContextMap _contextMap = ContextMap.Instance;
     private static readonly TestProperties TestProperties = new();
-    private readonly Nctl _nctl = new(TestProperties.DockerName);
+    private readonly NodeClient _nodeClient = new(TestProperties.DockerName);
     
     [BeforeScenario()]
     private void SetUp() {
@@ -58,7 +58,7 @@ public class StateGetAccountInfoStepDefinitions {
         WriteLine("the state_get_account_info_result contain a valid account hash");
         
         var stateAccountInfo = _contextMap.Get<RpcResponse<GetAccountInfoResult>>(StepConstants.STATE_ACCOUNT_INFO);
-        var expectedAccountHash = _nctl.GetAccountHash(1);
+        var expectedAccountHash = _nodeClient.GetAccountHash(1);
         
         Assert.That(stateAccountInfo.Parse().Account.AccountHash.ToString().ToUpper(), Is.EqualTo(expectedAccountHash.ToUpper()));
         
@@ -69,14 +69,14 @@ public class StateGetAccountInfoStepDefinitions {
         WriteLine("the state_get_account_info_result contain a valid action thresholds");
         
         var stateAccountInfo = _contextMap.Get<RpcResponse<GetAccountInfoResult>>(StepConstants.STATE_ACCOUNT_INFO);
-        var userAccountJson = _nctl.GetUserAccount(1);
+        var userAccountJson = _nodeClient.GetUserAccount(1);
         var deployment = stateAccountInfo.Parse().Account.ActionThresholds;
         
         Assert.That(deployment, Is.Not.Null);
         Assert.That(deployment.Deployment.ToString(), 
-            Is.EqualTo(userAccountJson["stored_value"]!["Account"]!["action_thresholds"]!["deployment"]!.ToString()));
+            Is.EqualTo(userAccountJson["action_thresholds"]!["deployment"]!.ToString()));
         Assert.That(deployment.KeyManagement.ToString(), 
-            Is.EqualTo(userAccountJson["stored_value"]!["Account"]!["action_thresholds"]!["key_management"]!.ToString()));
+            Is.EqualTo(userAccountJson["action_thresholds"]!["key_management"]!.ToString()));
 
     }
 
@@ -85,7 +85,7 @@ public class StateGetAccountInfoStepDefinitions {
         WriteLine("the state_get_account_info_result contain a valid main purse uref");
 
         var stateAccountInfo = _contextMap.Get<RpcResponse<GetAccountInfoResult>>(StepConstants.STATE_ACCOUNT_INFO);
-        var accountMainPurse = _nctl.GetAccountMainPurse(1);
+        var accountMainPurse = _nodeClient.GetAccountMainPurse(1);
         
         Assert.That(stateAccountInfo.Parse().Account.MainPurse.ToString().ToUpper(), Is.EqualTo(accountMainPurse.ToUpper()));
 
@@ -98,11 +98,15 @@ public class StateGetAccountInfoStepDefinitions {
         var stateAccountInfo = _contextMap.Get<RpcResponse<GetAccountInfoResult>>(StepConstants.STATE_ACCOUNT_INFO);
         
         Assert.That(stateAccountInfo.Parse().MerkleProof, Is.Not.Null);
+        
+        /*
+         * The CCTL node does not return the Merkle Proof
+         * Test no longer valid
+         */
 
-        var merkleProof = _nctl.GetAccountMerkelProof(1);
-
-        Assert.That(stateAccountInfo.Parse().MerkleProof.Length,
-            Is.EqualTo(int.Parse(merkleProof.Split(" ")[0][1..])));
+        // var merkleProof = _nodeClient.GetAccountMerkelProof(1);
+        // Assert.That(stateAccountInfo.Parse().MerkleProof.Length,
+        //     Is.EqualTo(int.Parse(merkleProof.Split(" ")[0][1..])));
 
     }
 
@@ -111,7 +115,7 @@ public class StateGetAccountInfoStepDefinitions {
         WriteLine("the state_get_account_info_result contain a valid associated keys");
         var stateAccountInfo = _contextMap.Get<RpcResponse<GetAccountInfoResult>>(StepConstants.STATE_ACCOUNT_INFO);
 
-        var expectedAccountHash = _nctl.GetAccountHash(1);
+        var expectedAccountHash = _nodeClient.GetAccountHash(1);
         
         Assert.That(stateAccountInfo.Parse().Account.AssociatedKeys.First().AccountHash.ToString()!.ToUpper(),
             Is.EqualTo(expectedAccountHash.ToUpper()));
@@ -126,9 +130,9 @@ public class StateGetAccountInfoStepDefinitions {
         
         var stateAccountInfo = _contextMap.Get<RpcResponse<GetAccountInfoResult>>(StepConstants.STATE_ACCOUNT_INFO);
 
-        var userAccountJson = _nctl.GetUserAccount(1);
+        var userAccountJson = _nodeClient.GetUserAccount(1);
         Assert.That(stateAccountInfo.Parse().Account.NamedKeys.Count, 
-            Is.EqualTo(userAccountJson["stored_value"]!["Account"]!["named_keys"]!.AsArray().Count));
+            Is.EqualTo(userAccountJson["named_keys"]!.AsArray().Count));
 
     }
 
