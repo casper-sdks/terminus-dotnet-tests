@@ -28,7 +28,7 @@ public class Blocks {
 
     private static readonly TestProperties TestProperties = new();
     private readonly Dictionary<string, object> _contextMap = new();
-    private readonly Node _node = new(TestProperties.DockerName);
+    private readonly NodeClient _nodeClient = new(TestProperties.DockerName);
 
     private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
@@ -48,7 +48,7 @@ public class Blocks {
     public void ThenRequestTheLatestBlockViaTheTestNode() {
         WriteLine("request the latest block via the test node");
 
-        _contextMap.Add("blockDataNode", _node.GetChainBlock(""));
+        _contextMap.Add("blockDataNode", _nodeClient.GetChainBlock(""));
     }
 
     [Then(@"the body of the returned block is equal to the body of the returned test node block")]
@@ -154,7 +154,7 @@ public class Blocks {
     public void ThenRequestTheReturnedBlockFromTheTestNodeViaItsHash() {
         WriteLine("request the returned block from the test node via its hash");
 
-        _contextMap["blockDataNode"] = _node.GetChainBlock(_contextMap["blockHashSdk"].ToString());
+        _contextMap["blockDataNode"] = _nodeClient.GetChainBlock(_contextMap["blockHashSdk"].ToString());
     }
 
     [Given(@"that a block is returned by hash via the sdk")]
@@ -174,7 +174,7 @@ public class Blocks {
     public void ThenRequestABlockByHashViaTheTestNode() {
         WriteLine("request a block by hash via the test node");
 
-        _contextMap["blockDataNode"] = _node.GetChainBlock(_contextMap["latestBlock"].ToString());
+        _contextMap["blockDataNode"] = _nodeClient.GetChainBlock(_contextMap["latestBlock"].ToString());
     }
 
     [Given(@"that an invalid block hash is requested via the sdk")]
@@ -278,7 +278,7 @@ public class Blocks {
         WriteLine("request the block transfer from the test node");
         
         var transferData = (RpcResponse<GetBlockTransfersResult>)_contextMap["transferBlockSdk"];
-        _contextMap["transferBlockNode"] = _node.GetChainBlock(transferData.Parse().BlockHash);
+        _contextMap["transferBlockNode"] = _nodeClient.GetChainBlock(transferData.Parse().BlockHash);
     }
 
     [Then(@"the returned block contains the transfer hash returned from the test node block")]

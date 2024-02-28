@@ -10,10 +10,10 @@ namespace TerminusDotNet.Test.Utils;
  * Calls to the node docker image 
  */
 
-public partial class Node {
+public partial class NodeClient {
     private readonly string _dockerName;
 
-    public Node(string dockerName) {
+    public NodeClient(string dockerName) {
         _dockerName = dockerName;
     }
     public string GetAccountMerkelProof(int userId) {

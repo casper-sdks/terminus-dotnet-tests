@@ -18,7 +18,7 @@ public class GetStateRootHashStepDefinitions {
     
     private readonly ContextMap _contextMap = ContextMap.Instance;
     
-    private readonly Node _node = new(TestProperties.DockerName);
+    private readonly NodeClient _nodeClient = new(TestProperties.DockerName);
 
     private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
@@ -47,7 +47,7 @@ public class GetStateRootHashStepDefinitions {
         
         Assert.That(stateRootHash, Is.Not.Null);
 
-        var expectedStateRootHash = _node.GetStateRootHash(1);
+        var expectedStateRootHash = _nodeClient.GetStateRootHash(1);
         
         Assert.That(stateRootHash, Is.EqualTo(expectedStateRootHash));
 

@@ -20,7 +20,7 @@ public class InfoGetStatusStepDefinitions {
 
     private readonly ContextMap _contextMap = ContextMap.Instance;
     private static readonly TestProperties TestProperties = new();
-    private readonly Node _node = new(TestProperties.DockerName);
+    private readonly NodeClient _nodeClient = new(TestProperties.DockerName);
 
     private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
@@ -39,7 +39,7 @@ public class InfoGetStatusStepDefinitions {
     public async Task GivenThatTheInfoGetStatusIsInvokedAgainstNctl() {
         WriteLine("that the info_get_status is invoked against nctl");
 
-        var expectedJsonNodeStatus = _node.GetNodeStatus(1);
+        var expectedJsonNodeStatus = _nodeClient.GetNodeStatus(1);
        
         Assert.That(expectedJsonNodeStatus, Is.Not.Null);
         _contextMap.Add(StepConstants.EXPECTED_STATUS_DATA, expectedJsonNodeStatus);

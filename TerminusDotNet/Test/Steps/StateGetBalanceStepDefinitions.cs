@@ -18,7 +18,7 @@ namespace TerminusDotNet.Test.Steps;
 public class StateGetBalanceStepDefinitions {
     
     private static readonly TestProperties TestProperties = new();
-    private Node _node = new(TestProperties.DockerName);
+    private NodeClient _nodeClient = new(TestProperties.DockerName);
     private readonly ContextMap _contextMap = ContextMap.Instance;    
     private readonly SimpleRcpClient _simpleRcpClient = new(TestProperties.Hostname, TestProperties.RcpPort);
 
@@ -30,8 +30,8 @@ public class StateGetBalanceStepDefinitions {
     public async Task GivenThatTheStateGetBalanceRpcMethodIsInvokedAgainstNcltUserPurse() {
         WriteLine("that the state_get_balance RPC method is invoked against nclt user-1 purse");
 
-        var stateRootHash =  _node.GetStateRootHash(1);
-        var accountMainPurse = _node.GetAccountMainPurse(1);
+        var stateRootHash =  _nodeClient.GetStateRootHash(1);
+        var accountMainPurse = _nodeClient.GetAccountMainPurse(1);
         var balance = await GetCasperService().GetAccountBalance(accountMainPurse, stateRootHash);
 
         _contextMap.Add(StepConstants.STATE_GET_BALANCE_RESULT, balance);
@@ -56,8 +56,8 @@ public class StateGetBalanceStepDefinitions {
     public async Task ThenTheStateGetBalanceResultContainsThePurseAmount() {
         WriteLine("the state_get_balance_result contains the purse amount");     
         
-        var accountMainPurse = _node.GetAccountMainPurse(1);
-        var json = await _simpleRcpClient.GetBalance(_node.GetStateRootHash(1), accountMainPurse);
+        var accountMainPurse = _nodeClient.GetAccountMainPurse(1);
+        var json = await _simpleRcpClient.GetBalance(_nodeClient.GetStateRootHash(1), accountMainPurse);
         var balance = BigInteger.Parse(json["result"]!["balance_value"]!.ToString());
 
         var balanceData = _contextMap.Get<RpcResponse<GetBalanceResult>>(StepConstants.STATE_GET_BALANCE_RESULT);
