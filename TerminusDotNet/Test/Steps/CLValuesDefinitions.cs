@@ -22,6 +22,7 @@ namespace TerminusDotNet.Test.Steps;
 public partial class CLValuesDefinitions {
 
     private readonly ContextMap _contextMap = ContextMap.Instance;
+    private static readonly TestProperties TestProperties = new();
     
     [BeforeScenario()]
     private void SetUp() {
@@ -86,7 +87,7 @@ public partial class CLValuesDefinitions {
             Account = senderKey.PublicKey,
             Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
             Ttl = 1800000,
-            ChainName = "casper-net-1",
+            ChainName = TestProperties.ChainName,
             GasPrice = 1
         };
         var payment = new ModuleBytesDeployItem(100000000);

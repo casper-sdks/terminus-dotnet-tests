@@ -24,7 +24,7 @@ public class QueryGlobalStateStepDefinitions {
     
     private static readonly TestProperties TestProperties = new();
     private readonly ContextMap _contextMap = ContextMap.Instance;
-    private readonly Nctl _nctl = new(TestProperties.DockerName);
+    private readonly Node _node = new(TestProperties.DockerName);
     
     [BeforeScenario()]
     private void SetUp() {
@@ -97,7 +97,7 @@ public class QueryGlobalStateStepDefinitions {
         
         var globalStateData = _contextMap.Get<RpcResponse<QueryGlobalStateResult>>(StepConstants.GLOBAL_STATE_DATA);
         var deployInfo = globalStateData.Parse().StoredValue.DeployInfo;
-        var accountHash = _nctl.GetAccountHash(user);
+        var accountHash = _node.GetAccountHash(user);
         
         Assert.That(deployInfo.From.ToString()!.ToUpper(), 
             Is.EqualTo(accountHash.ToUpper()));
@@ -132,7 +132,7 @@ public class QueryGlobalStateStepDefinitions {
      
         var globalStateData = _contextMap.Get<RpcResponse<QueryGlobalStateResult>>(StepConstants.GLOBAL_STATE_DATA);
         var deployInfo = globalStateData.Parse().StoredValue.DeployInfo;
-        var accountMainPurse = _nctl.GetAccountMainPurse(1);
+        var accountMainPurse = _node.GetAccountMainPurse(1);
         
         Assert.That(deployInfo.Source.ToString().ToUpper(), Is.EqualTo(accountMainPurse.ToUpper()));
         
@@ -217,7 +217,7 @@ public class QueryGlobalStateStepDefinitions {
             receiverKey,
             new BigInteger(2500000000),
             100_000_000,
-            "casper-net-1",
+            TestProperties.ChainName,
             null,
             1,
             (ulong)TimeSpan.FromMinutes(30).TotalMilliseconds);

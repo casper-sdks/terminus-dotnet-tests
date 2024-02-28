@@ -13,6 +13,7 @@ namespace TerminusDotNet.Test.Utils;
 public class DeployUtils {
 
     private static readonly ContextMap _contextMap = ContextMap.Instance;
+    private static readonly TestProperties TestProperties = new();
 
     public static async Task DeployArgs(List<NamedArg> args, NetCasperClient client) {
 
@@ -28,7 +29,7 @@ public class DeployUtils {
             Account = senderKey.PublicKey,
             Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
             Ttl = 1800000,
-            ChainName = "casper-net-1",
+            ChainName = TestProperties.ChainName,
             GasPrice = 1
         };
         var payment = new ModuleBytesDeployItem(100000000);

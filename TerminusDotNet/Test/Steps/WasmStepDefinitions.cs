@@ -24,6 +24,7 @@ namespace TerminusDotNet.Test.Steps;
 public class WasmStepDefinitions {
     
     private readonly ContextMap _contextMap = ContextMap.Instance;
+    private static readonly TestProperties TestProperties = new();
     
     [BeforeScenario()]
     private void SetUp() {
@@ -54,7 +55,7 @@ public class WasmStepDefinitions {
         var wasmBytes = File.ReadAllBytes(_contextMap.Get<string>(StepConstants.WASM_PATH));
         Assert.That(wasmBytes.Length, Is.EqualTo(189336));
         
-        var chainName = "casper-net-1";
+        var chainName = TestProperties.ChainName;
         var paymentAmount = BigInteger.Parse("200000000000");
         byte tokenDecimals = 11;
         var tokenName = "Acme Token";
@@ -184,7 +185,7 @@ public class WasmStepDefinitions {
             Account = faucetPrivateKey.PublicKey,
             Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
             Ttl = (ulong) TimeSpan.FromMinutes(30).TotalMilliseconds,
-            ChainName =  "casper-net-1",
+            ChainName =  TestProperties.ChainName,
             GasPrice = 1
         };
         
@@ -236,7 +237,7 @@ public class WasmStepDefinitions {
             Account = faucetPrivateKey.PublicKey,
             Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
             Ttl = (ulong) TimeSpan.FromMinutes(30).TotalMilliseconds,
-            ChainName =  "casper-net-1",
+            ChainName =  TestProperties.ChainName,
             GasPrice = 1
         };
         
@@ -279,7 +280,7 @@ public class WasmStepDefinitions {
             Account = faucetPrivateKey.PublicKey,
             Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
             Ttl = (ulong) TimeSpan.FromMinutes(30).TotalMilliseconds,
-            ChainName =  "casper-net-1",
+            ChainName =  TestProperties.ChainName,
             GasPrice = 1
         };
         
@@ -314,7 +315,7 @@ public class WasmStepDefinitions {
             Account = faucetPrivateKey.PublicKey,
             Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
             Ttl = (ulong) TimeSpan.FromMinutes(30).TotalMilliseconds,
-            ChainName =  "casper-net-1",
+            ChainName =  TestProperties.ChainName,
             GasPrice = 1
         };
         

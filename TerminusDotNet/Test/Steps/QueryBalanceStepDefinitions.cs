@@ -130,7 +130,7 @@ public class QueryBalanceStepDefinitions {
             userPublicKey,
             BigInteger.Parse(amount),
             100_000_000,
-            "casper-net-1",
+            TestProperties.ChainName,
             null,
             1,
             (ulong)TimeSpan.FromMinutes(30).TotalMilliseconds);

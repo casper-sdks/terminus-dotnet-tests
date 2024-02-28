@@ -19,6 +19,7 @@ namespace TerminusDotNet.Test.Steps;
 public class DeployGeneratedKeys {
     
     private readonly ContextMap _contextMap = ContextMap.Instance;    
+    private static readonly TestProperties TestProperties = new();
     
     private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
@@ -106,7 +107,7 @@ public class DeployGeneratedKeys {
             receiverKeys.PublicKey,
             _contextMap.Get<BigInteger>(StepConstants.TRANSFER_AMOUNT),
             _contextMap.Get<BigInteger>(StepConstants.PAYMENT_AMOUNT),
-            "casper-net-1",
+            TestProperties.ChainName,
             null,
             1,
             (ulong)TimeSpan.FromMinutes(30).TotalMilliseconds);

@@ -21,14 +21,14 @@ namespace TerminusDotNet.Test.Steps;
 [Binding]
 public class Blocks {
     
-    private const string InvalidBlockHash = "2fe9630b7790852e4409d815b04ca98f37effcdf9097d317b9b9b8ad658f47c8";
-    private const long InvalidHeight = 9999999999;
-    private const string BlockErrorMsg = "No such block";
-    private const string BlockErrorCode = "-32001";
+    private const string INVALID_BLOCK_HASH = "2fe9630b7790852e4409d815b04ca98f37effcdf9097d317b9b9b8ad658f47c8";
+    private const long INVALID_HEIGHT = 9999999999;
+    private const string BLOCK_ERROR_MSG = "No such block";
+    private const string BLOCK_ERROR_CODE = "-32001";
 
     private static readonly TestProperties TestProperties = new();
     private readonly Dictionary<string, object> _contextMap = new();
-    private readonly Nctl _nctl = new(TestProperties.DockerName);
+    private readonly Node _node = new(TestProperties.DockerName);
 
     private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
@@ -48,7 +48,7 @@ public class Blocks {
     public void ThenRequestTheLatestBlockViaTheTestNode() {
         WriteLine("request the latest block via the test node");
 
-        _contextMap.Add("blockDataNode", _nctl.GetChainBlock(""));
+        _contextMap.Add("blockDataNode", _node.GetChainBlock(""));
     }
 
     [Then(@"the body of the returned block is equal to the body of the returned test node block")]
@@ -154,7 +154,7 @@ public class Blocks {
     public void ThenRequestTheReturnedBlockFromTheTestNodeViaItsHash() {
         WriteLine("request the returned block from the test node via its hash");
 
-        _contextMap["blockDataNode"] = _nctl.GetChainBlock(_contextMap["blockHashSdk"].ToString());
+        _contextMap["blockDataNode"] = _node.GetChainBlock(_contextMap["blockHashSdk"].ToString());
     }
 
     [Given(@"that a block is returned by hash via the sdk")]
@@ -174,7 +174,7 @@ public class Blocks {
     public void ThenRequestABlockByHashViaTheTestNode() {
         WriteLine("request a block by hash via the test node");
 
-        _contextMap["blockDataNode"] = _nctl.GetChainBlock(_contextMap["latestBlock"].ToString());
+        _contextMap["blockDataNode"] = _node.GetChainBlock(_contextMap["latestBlock"].ToString());
     }
 
     [Given(@"that an invalid block hash is requested via the sdk")]
@@ -182,7 +182,7 @@ public class Blocks {
         WriteLine("that an invalid block hash is requested via the sdk");
 
         _contextMap["rpcClientException"] =
-            Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(InvalidBlockHash));
+            Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(INVALID_BLOCK_HASH));
     }
 
     [Then(@"a valid error message is returned")]
@@ -192,8 +192,8 @@ public class Blocks {
         var rpcClientException = (RpcClientException)_contextMap["rpcClientException"];
 
         Assert.That(rpcClientException.RpcError, Is.Not.Null);
-        Assert.That(rpcClientException.RpcError.Code.ToString(), Is.EqualTo(BlockErrorCode));
-        Assert.That(rpcClientException.RpcError.Message, Is.EqualTo(BlockErrorMsg));
+        Assert.That(rpcClientException.RpcError.Code.ToString(), Is.EqualTo(BLOCK_ERROR_CODE));
+        Assert.That(rpcClientException.RpcError.Message, Is.EqualTo(BLOCK_ERROR_MSG));
     }
 
     [Given(@"that an invalid block height is requested via the sdk")]
@@ -201,7 +201,7 @@ public class Blocks {
         WriteLine("that an invalid block height is requested via the sdk");
 
         _contextMap["rpcClientException"] =
-            Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(unchecked((int)InvalidHeight)));
+            Assert.ThrowsAsync<RpcClientException>(() => GetCasperService().GetBlock(unchecked((int)INVALID_HEIGHT)));
     }
 
     [Given(@"that chain transfer data is initialised")]
@@ -237,7 +237,7 @@ public class Blocks {
             (PublicKey)_contextMap["receiverKey"],
             (BigInteger)_contextMap["transferAmount"],
             100_000_000,
-            "casper-net-1");
+            TestProperties.ChainName);
         
         deploy.Sign(senderKey);
         
@@ -278,7 +278,7 @@ public class Blocks {
         WriteLine("request the block transfer from the test node");
         
         var transferData = (RpcResponse<GetBlockTransfersResult>)_contextMap["transferBlockSdk"];
-        _contextMap["transferBlockNode"] = _nctl.GetChainBlockTransfers(transferData.Parse().BlockHash);
+        _contextMap["transferBlockNode"] = _node.GetChainBlock(transferData.Parse().BlockHash);
     }
 
     [Then(@"the returned block contains the transfer hash returned from the test node block")]

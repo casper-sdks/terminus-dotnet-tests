@@ -40,22 +40,22 @@ public class InfoGetChainSpecStepDefinitions {
     public async Task GivenThatTheInfoGetChainspecIsInvokedUsingASimpleRpcJsonRequest() {
         WriteLine("that the info_get_chainspec is invoked using a simple RPC json request");
         
-        var chainSpecNctl = await _simpleRcpClient.GetInfoGetChainspec();
+        var chainSpecNode = await _simpleRcpClient.GetInfoGetChainspec();
 
-        Assert.That(chainSpecNctl, Is.Not.Null);
+        Assert.That(chainSpecNode, Is.Not.Null);
 
-        _contextMap.Add(StepConstants.INFO_GET_CHAINSPEC_NCTL, chainSpecNctl);
+        _contextMap.Add(StepConstants.INFO_GET_CHAINSPEC_NODE, chainSpecNode);
     }
 
     [Then(@"the SDK chain bytes equals the RPC json request chain bytes")]
     public void ThenTheSdkChainBytesEqualsTheRpcJsonRequestChainBytes() {
         WriteLine("the SDK chain bytes equals the RPC json request chain bytes");
 
-        var chainSpecNctl = _contextMap.Get<JsonNode>(StepConstants.INFO_GET_CHAINSPEC_NCTL);
+        var chainSpecNode = _contextMap.Get<JsonNode>(StepConstants.INFO_GET_CHAINSPEC_NODE);
         var chainSpecSdk = _contextMap.Get<RpcResponse<GetChainspecResult>>(StepConstants.INFO_GET_CHAINSPEC_SDK);
 
         Assert.That(chainSpecSdk.Parse().ChainspecBytes.ChainspecBytes.ToUpper(),
-            Is.EqualTo(chainSpecNctl["result"]!["chainspec_bytes"]!["chainspec_bytes"]!.ToString().ToUpper()));
+            Is.EqualTo(chainSpecNode["result"]!["chainspec_bytes"]!["chainspec_bytes"]!.ToString().ToUpper()));
 
     }
 
@@ -63,15 +63,15 @@ public class InfoGetChainSpecStepDefinitions {
     public void ThenTheSdkGenesisBytesEqualsTheRpcJsonRequestGenesisBytes() {
         WriteLine("the SDK genesis bytes equals the RPC json request genesis bytes");
 
-        var chainSpecNctl = _contextMap.Get<JsonNode>(StepConstants.INFO_GET_CHAINSPEC_NCTL);
+        var chainSpecNode = _contextMap.Get<JsonNode>(StepConstants.INFO_GET_CHAINSPEC_NODE);
         var chainSpecSdk = _contextMap.Get<RpcResponse<GetChainspecResult>>(StepConstants.INFO_GET_CHAINSPEC_SDK);
 
         if (chainSpecSdk.Parse().ChainspecBytes.MaybeGenesisAccountsBytes == null) {
-            Assert.That(chainSpecNctl["result"]!["chainspec_bytes"]!["maybe_genesis_accounts_bytes"], Is.EqualTo(null));
+            Assert.That(chainSpecNode["result"]!["chainspec_bytes"]!["maybe_genesis_accounts_bytes"], Is.EqualTo(null));
         }
         else {
             Assert.That(chainSpecSdk.Parse().ChainspecBytes.MaybeGenesisAccountsBytes.ToUpper(),
-                Is.EqualTo(chainSpecNctl["result"]!["chainspec_bytes"]!["maybe_genesis_accounts_bytes"]!.ToString().ToUpper()));
+                Is.EqualTo(chainSpecNode["result"]!["chainspec_bytes"]!["maybe_genesis_accounts_bytes"]!.ToString().ToUpper()));
         }
         
     }
@@ -80,15 +80,15 @@ public class InfoGetChainSpecStepDefinitions {
     public void ThenTheSdkGlobalStateBytesEqualsTheRpcJsonRequestGlobalStateBytes() {
         WriteLine("the SDK global state bytes equals the RPC json request global state bytes");
         
-        var chainSpecNctl = _contextMap.Get<JsonNode>(StepConstants.INFO_GET_CHAINSPEC_NCTL);
+        var chainSpecNode = _contextMap.Get<JsonNode>(StepConstants.INFO_GET_CHAINSPEC_NODE);
         var chainSpecSdk = _contextMap.Get<RpcResponse<GetChainspecResult>>(StepConstants.INFO_GET_CHAINSPEC_SDK);
 
         if (chainSpecSdk.Parse().ChainspecBytes.MaybeGlobalStateBytes == null) {
-            Assert.That(chainSpecNctl["result"]!["chainspec_bytes"]!["maybe_global_state_bytes"], Is.EqualTo(null));
+            Assert.That(chainSpecNode["result"]!["chainspec_bytes"]!["maybe_global_state_bytes"], Is.EqualTo(null));
         }
         else {
             Assert.That(chainSpecSdk.Parse().ChainspecBytes.MaybeGlobalStateBytes.ToUpper(),
-                Is.EqualTo(chainSpecNctl["result"]!["chainspec_bytes"]!["maybe_global_state_bytes"]!.ToString().ToUpper()));
+                Is.EqualTo(chainSpecNode["result"]!["chainspec_bytes"]!["maybe_global_state_bytes"]!.ToString().ToUpper()));
         }
         
     }

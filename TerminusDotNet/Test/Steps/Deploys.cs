@@ -24,6 +24,7 @@ namespace TerminusDotNet.Test.Steps;
 public class Deploys {
     
     private readonly ContextMap _contextMap = ContextMap.Instance;    
+    private static readonly TestProperties TestProperties = new();
     private static NetCasperClient GetCasperService() {
         return CasperClientProvider.GetInstance().CasperService;
     }
@@ -90,7 +91,7 @@ public class Deploys {
             Account = senderKey.PublicKey,
             Timestamp = DateUtils.ToEpochTime(DateTime.UtcNow),
             Ttl = (ulong)TimeSpan.FromMinutes(_contextMap.Get<ulong>(StepConstants.TTL)).TotalMilliseconds,
-            ChainName = chainName,
+            ChainName = TestProperties.ChainName,
             GasPrice = 1
         };
         var deploy = new Deploy(header, payment, session);
